@@ -42,6 +42,13 @@ public class md_complexStatusEffect extends StatusEffect {
 
         super.setStats();
         if(!reactive) {
+            if(armorMultiplier !=1) {
+                stats.addMultModifier(md_Stat.armorMultiplier, armorMultiplier);
+            }
+            if(armorAdditional !=0) {
+                stats.add(md_Stat.armorAdditional, armorAdditional);
+            }
+
             if (percentageDamage > 0) {
                 stats.add(md_Stat.percentageDamage, percentageDamage * 6000f, md_StatUnit.percentsecond);
             } else if (percentageDamage < 0) {
@@ -50,12 +57,7 @@ public class md_complexStatusEffect extends StatusEffect {
             if(percentageShieldDamage !=0) {
                 stats.add(md_Stat.percentageShieldDamage, percentageShieldDamage * 6000f, md_StatUnit.percentsecond);
             }
-            if(armorAdditional !=0) {
-                stats.add(md_Stat.armorAdditional, armorAdditional);
-            }
-            if(armorMultiplier !=1) {
-                stats.add(md_Stat.armorMultiplier, armorMultiplier, StatUnit.multiplier);
-            }
+
         }else {
             if (percentageDamage > 0) {
                 stats.add(md_Stat.percentageDamage, percentageDamage*100f,StatUnit.percent);
@@ -103,19 +105,16 @@ public class md_complexStatusEffect extends StatusEffect {
             }else unit.shield = 0;
         }
         /// armor
-        float TmpArmorAdd = 0,TmpArmorMul = 1f;
-        for(int i = 0;i<unit.statusBits().length();i++){
-            if(unit.hasEffect(content.getByID(ContentType.status,i))) {
-                if (content.getByID(ContentType.status, i) instanceof md_complexStatusEffect cStatus) {
-                    if (cStatus.armorAdditional != 0 || cStatus.armorMultiplier != 1) {
-                        TmpArmorAdd += cStatus.armorAdditional;
-                        TmpArmorMul *= cStatus.armorMultiplier;
-                    }
-                }
-            }
-        }
-        if(TmpArmorAdd!=0||TmpArmorMul!=1) {
-            unit.armor = (unit.type.armor*TmpArmorMul)+TmpArmorAdd;
+
+
+        if(armorAdditional!=0||armorMultiplier!=1) {
+            if(unit.armorOverride == -1)unit.armorOverride =unit.type.armor;
+            //unit.armorOverride += (unit.type.armor*(armorMultiplier-1))+armorAdditional;
+            unit.armorOverride+=unit.type.armor*(armorMultiplier-1)+armorAdditional;
+            //if(unit.armorOverride<=0)unit.armor = 0;
+            if(unit.armorOverride <=0) unit.armorOverride = 0.0001f;
+
+
         }
 
         act.acting(unit);

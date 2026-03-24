@@ -32,15 +32,12 @@ public class md_MultiwayUnloader extends DirectionalUnloader{
         group = BlockGroup.transportation;
         outputFacing = false;
         update = true;
-        solid = true;
         hasItems = true;
         configurable = true;
         saveConfig = true;
         rotate = true;
         itemCapacity = 0;
         noUpdateDisabled = true;
-        unloadable = false;
-        isDuct = false;
         envDisabled = Env.none;
         clearOnDoubleTap = true;
         priority = TargetPriority.transport;

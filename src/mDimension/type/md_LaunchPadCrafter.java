@@ -36,6 +36,7 @@ public class md_LaunchPadCrafter extends GenericCrafter {
     public float loadStayTime = 50f;
     public md_LaunchPadCrafter(String name) {
         super(name);
+        canOverdrive = false;
 
         if(launchEffect == Fx.none){
             launchEffect = craftEffect = md_Fx.loadLaunch(400f,this.name+"-pod",17f*8f,0f,1f,1f);

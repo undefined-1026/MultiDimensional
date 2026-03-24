@@ -1,8 +1,11 @@
 package mDimension.tool;
 
+import arc.math.Mathf;
 import arc.math.geom.Point2;
 import arc.math.geom.Vec2;
+import mindustry.Vars;
 import mindustry.gen.Building;
+import mindustry.world.Block;
 
 public class md_Edge {
     public static Vec2[] getFacingNearby(Building b){
@@ -11,6 +14,27 @@ public class md_Edge {
         Vec2[] points = new Vec2[size];
         for(int i = 0;i<size;i++){
             points[i] = transpose(new Vec2(((size-1)/2f)*8f,((size-1)/2f)*8f-i*8),b.rotation);
+        }
+        for(int i = 0;i<size;i++){
+            points[i].add(b.x,b.y);
+        }
+        return points;
+    }
+    public static Vec2[] getFacingNearby(Block block){
+        if(block.size<=1)return new Vec2[]{new Vec2(0,0)};
+        int size = block.size;
+        Vec2[] points = new Vec2[size];
+        for(int i = 0;i<size;i++){
+            points[i] = new Vec2(((size-1)/2f)*8f,((size-1)/2f)*8f-i*8);
+        }
+        return points;
+    }
+    public static Vec2[] getFacingNearby(Building b,int r){
+        if(b.block.size<=1)return new Vec2[]{new Vec2(b.x,b.y)};
+        int size = b.block.size;
+        Vec2[] points = new Vec2[size];
+        for(int i = 0;i<size;i++){
+            points[i] = transpose(new Vec2(((size-1)/2f)*8f,((size-1)/2f)*8f-i*8),r);
         }
         for(int i = 0;i<size;i++){
             points[i].add(b.x,b.y);
@@ -43,6 +67,25 @@ public class md_Edge {
             }
         }
         return new Vec2(1,0);
+    }
 
+    public static Building alignedNearby(Building b,int r){
+        boolean isFind = false;
+        Building cache = null;
+        for(var v:getFacingNearby(b,r)){
+            Vec2 rotat = direction(b.rotation);
+            v.add(rotat.x*8,rotat.y*8);
+            Building onBuild = Vars.world.buildWorld(v.x,v.y);
+            if(onBuild == null)return null;
+            if(!isFind){cache = onBuild;isFind = true;continue;}
+            if(cache != onBuild)return null;
+            if(onBuild.block.size < b.block.size)return null;
+        }
+        return cache;
+    }
+    public static Vec2 LimitInSquare(Vec2 v,float sideLen){
+        v.x = Mathf.clamp(v.x,-sideLen/2,sideLen/2);
+        v.y = Mathf.clamp(v.y,-sideLen/2,sideLen/2);
+        return v;
     }
 }

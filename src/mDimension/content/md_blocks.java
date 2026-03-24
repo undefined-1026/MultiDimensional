@@ -6,23 +6,28 @@ import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Fill;
 import arc.math.Interp;
 import arc.math.Mathf;
+import arc.math.geom.Vec2;
+import arc.struct.Seq;
 import arc.util.Time;
 import mDimension.consumers.ConsumeBeam;
-import mDimension.draw.DiagonalArrow;
 import mDimension.draw.DrawPiston;
 import mDimension.draw.DrawRotation;
 import mDimension.entity.EntityShield;
+import mDimension.entity.MultiSound;
 import mDimension.entity.bullet.BallLightningBulletType;
 import mDimension.entity.bullet.EntityCrafterBulletType;
+import mDimension.entity.bullet.MultiPointLaserBullet;
 import mDimension.entity.pattern.ShootSwing;
 import mDimension.type.*;
 import mindustry.content.*;
 import mindustry.entities.Effect;
+import mindustry.entities.UnitSorts;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.MultiEffect;
 import mindustry.entities.effect.WaveEffect;
 import mindustry.entities.part.RegionPart;
 import mindustry.entities.pattern.*;
+import mindustry.gen.Bullet;
 import mindustry.gen.Sounds;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
@@ -38,8 +43,10 @@ import mindustry.world.blocks.defense.turrets.ItemTurret;
 import mindustry.world.blocks.distribution.Duct;
 import mindustry.world.blocks.distribution.DuctBridge;
 import mindustry.world.blocks.distribution.StackConveyor;
+import mindustry.world.blocks.payloads.Constructor;
 import mindustry.world.blocks.production.GenericCrafter;
 import mindustry.world.blocks.production.HeatCrafter;
+import mindustry.world.blocks.storage.StorageBlock;
 import mindustry.world.draw.*;
 import mindustry.world.meta.BuildVisibility;
 
@@ -58,15 +65,23 @@ public class md_blocks {
     //distribution
     beam_merging_prism,
             multiway_unloader, polymer_compressor, al_alloy_duct_bridge,
-            ngm_launch_pad, light_duct, stack_rail_conveyor,
+            ngm_launch_pad, light_duct,armored_light_duct,stack_rail_conveyor,
+
+    //ammo
+    heavy_ammo,
     //turret
-    ionize, fracture,break_water, polarization,dawn,
+    ionize, fracture,break_water, polarization,dawn,test4,test5,crest,
     //core
-    coreSteady,
+    coreSteady,proof_container,stack,
     //power
-    internal_energy_pile;
+    internal_energy_pile,
+    //payload
+    small_payload_conveyor,
+            small_payload_router,
+    test3,ammo_constructor;
     //endregion
     public static void load() {
+        loadAmmo();
         //region craft
             //region al_alloy_smelting 铝合金
             al_alloy_smelting = new GenericCrafter("al-alloy-smelting") {{
@@ -156,12 +171,12 @@ public class md_blocks {
                     health = 500;
                     armor = 3;
                     buildTime = 3f;
-                    consumeLiquid(Liquids.hydrogen, 0.1f);
+                    consumeLiquid(Liquids.hydrogen, 6/60f);
                     consumeItem(Items.phaseFabric, 1);
                     craftTime = 240f;
                     size = 2;
 
-                    outputLiquid = new LiquidStack(md_liquids.helium, 0.025f);
+                    outputLiquid = new LiquidStack(md_liquids.helium, 1.5f/60f);
                     hasItems = true;
                     hasPower = true;
                     craftEffect = md_Fx.polyWave(
@@ -247,6 +262,7 @@ public class md_blocks {
                 requirements(Category.crafting,with());
                 afterRotation.set(1,1);
                 size = 1;
+                diagonalFilp = true;
                 drawArrow = true;
                 drawer = new DrawMulti(
                         new DrawRegion(),
@@ -316,27 +332,80 @@ public class md_blocks {
             //region infrared_laser 红外激光发生器
             infrared_laser = new LaserCrafter("infrared-laser") {{
                 requirements(Category.crafting, with());
+                craftPos = new Vec2[]{
+                        new Vec2(4,-4),
+                        new Vec2(-4,4)
+                };
+                craftRotation = new Vec2[]{
+                        new Vec2(1,0),
+                        new Vec2(0,1)
+                };
+                diagonalFilp = true;
                 consumePower(2f);
                 beam = md_beams.near_infrared_ligth;
                 size = 2;
                 beamPower = 10f;
                 rotateDraw = false;
                 drawArrow = true;
-                drawer = new DrawMulti(new DrawDefault(),new DrawHeatOutput());
+                drawer = new DrawMulti(new DrawRegion(),new DrawRotation("-top",true,false));
             }};
             //endregion
             //region ultraviolet_light 紫外光发生器
                 ultraviolet_laser = new LaserCrafter("ultraviolet-laser"){{
                 requirements(Category.crafting, with());
+                    craftPos = new Vec2[]{
+                            new Vec2(4,-4),
+                            new Vec2(-4,4)
+                    };
+                    craftRotation = new Vec2[]{
+                            new Vec2(1,1),
+                            new Vec2(1,1)
+                    };
                 consumePower(3f);
+                diagonalFilp = true;
                 beam = md_beams.ultraviolet_ligth;
                 size = 2;
                 beamPower = 6f;
                 rotateDraw = false;
                 drawArrow = true;
-                drawer = new DrawMulti(new DrawDefault(),new DrawHeatOutput());
+                drawer = new DrawMulti(new DrawRegion(),new DrawRotation("-top",true,false));
             }};
             //endregion
+        test5 = new GenericCrafter("carbon-fibre-binder"){{
+            requirements(Category.crafting,with());
+            size = 3;
+            consume(new ConsumeBeam(40,md_beams.near_infrared_ligth));
+            consumePower(5f);
+            consumeItems(
+                    with(md_items.polymer,5)
+            );
+            consumeLiquid(md_liquids.helium,1.5f/60f);
+            craftTime = 120f;
+            outputItem = new ItemStack(md_items.carbon_fibre,2);
+            craftEffect = new MultiEffect(
+                    md_Fx.brokenWave(27f,Color.valueOf("E0EAFF").a(0.85f),5f,4f,1.6f,6,0.3f,1.3f),
+                    md_Fx.brokenWave(27f,Color.valueOf("C9DBFF").a(0.85f),7.5f,6f,1.2f,8,0.5f,1.4f)
+
+            );
+
+            drawer = new DrawMulti(new DrawRegion("-bottom"), new DrawSpikes(){{
+                color = Color.valueOf("CCD1F2");
+                stroke = 1.5f;
+                layers = 3;
+                amount = 12;
+                rotateSpeed = 1.3f;
+                layerSpeed = -1.1f;
+            }}, new DrawMultiWeave(){{
+                rotateSpeed = 1.6f;
+                rotateSpeed2 = -1.3f;
+                glowColor = new Color(0.5f, 0.7f, 0.8f, 0.6f);
+            }}, new DrawRegion(),
+                    new DrawRegion("-top2",1.8f,true){{rotation = 45f;}},
+                    new DrawRegion("-top1",-1.6f,true),
+                    new DrawRegion("-top")
+            );
+
+        }};
         //endregion
         //region distribution
             al_alloy_duct_bridge = new DuctBridge("al-alloy-duct-bridge") {{
@@ -354,9 +423,20 @@ public class md_blocks {
                 requirements(Category.distribution, with(Items.silicon, 1, md_items.aluminium, 1));
                 speed = 3f;
                 health = 180;
-                armor = 2;
+                armor = 1;
                 bridgeReplacement = al_alloy_duct_bridge;
                 buildCostMultiplier = 0.5f;
+                researchCost = ItemStack.with(Items.silicon, 20, md_items.aluminium, 20);
+                fullOverride = this.name + "-private";
+            }};
+
+            armored_light_duct = new Duct("armored-light-duct") {{
+                requirements(Category.distribution, with(md_items.polymer, 1, md_items.aluminium, 1,md_items.al_alloy,1));
+                speed = 3f;
+                health = 300;
+                armor = 3;
+                bridgeReplacement = al_alloy_duct_bridge;
+                buildCostMultiplier = 0.6f;
                 researchCost = ItemStack.with(Items.silicon, 20, md_items.aluminium, 20);
                 fullOverride = this.name + "-private";
             }};
@@ -371,7 +451,7 @@ public class md_blocks {
                 size = 1;
                 health = 120;
                 speed = 3f;
-                solid = true;
+                solid = false;
                 underBullets = true;
                 regionRotated1 = 1;
 
@@ -458,7 +538,6 @@ public class md_blocks {
                 size = 1;
                 consumePower(4f);
             }};
-
             fracture = new ItemTurret("fracture") {{
                 requirements(Category.turret, ItemStack.with(md_items.aluminium, 120, Items.silicon, 80, Items.titanium, 80));
                 ammo(
@@ -596,7 +675,6 @@ public class md_blocks {
                 armor = 3;
                 outlineColor = Pal.darkOutline;
             }};
-
             break_water = new ItemTurret("break-water") {{
                 hideDatabase = true;
                 scaledHealth = 250;
@@ -606,13 +684,13 @@ public class md_blocks {
                         Items.phaseFabric, new BallLightningBulletType(7f, 20f,"mine-bullet") {{
                             shrinkX= shrinkY = 0;
                             lifetime = 30f;
-                            lightningRange = 80f;
-                            lightningDamage = 30;
+                            shockRange = 80f;
+                            shockDamage = 30;
                             lightning = 10;
-                            lightningCooldown = 10f;
+                            shockCooldown = 10f;
                             shockLimit = 1;
                             frontColor = Color.valueOf("f8f8ff");
-                            lightningColor = backColor = trailColor = hitColor = Color.valueOf("d8e0ff");
+                            shockColor = backColor = trailColor = hitColor = Color.valueOf("d8e0ff");
                             hitEffect = new MultiEffect(
                                     md_Fx.polyWave(4,25,45,5f,35f,hitColor,0.95f),
                                     md_Fx.spatter
@@ -674,7 +752,6 @@ public class md_blocks {
                     drawer = new DrawTurret("steady-state-");
                 }};
             }};
-
             dawn = new ItemTurret("dawn"){{
                 requirements(Category.turret,with());
                 scaledHealth = 250;
@@ -699,7 +776,7 @@ public class md_blocks {
                             hitSoundVolume = 0.45f;
                             hitEffect = new MultiEffect(md_Fx.gradientWave(40f,50f),md_Fx.starExplosionBig);
 
-                            trailColor = lightningColor = hitColor = backColor = md_items.polymorphic_crystal.color;
+                            trailColor = shockColor = hitColor = backColor = md_items.polymorphic_crystal.color;
 
                             trailLength = 8;
                             trailWidth = 3f;
@@ -716,14 +793,14 @@ public class md_blocks {
                                 }
                             };
 
-                            lightningEffect = new MultiEffect(md_Fx.chainLightningBig,md_Fx.waveHitColor(12,9f,13f,1.5f,0.85f));
-                            lightningDamage = 120f;
-                            lightningRange = 160f;
-                            maxStrikes = 20;
+                            shockEffect = new MultiEffect(md_Fx.chainLightningBig,md_Fx.waveHitColor(12,9f,13f,1.5f,0.85f));
+                            shockDamage = 120f;
+                            shockRange = 160f;
+                            shockAmount = 20;
                             shockLimit = 3;
 
-                            lightningCooldown = 12f;
-                            lightningStatu = md_StatusEffects.dimension_slip;
+                            shockCooldown = 12f;
+                            shockStatus = md_StatusEffects.dimension_slip;
                             statusDuration = 2*60f;
 
                             collidesAir = false;
@@ -812,7 +889,6 @@ public class md_blocks {
 
                 outlineColor = Pal.darkOutline;
             }};
-
             polarization = new ItemTurret("polarization"){{
                 requirements(Category.turret,with());
                 scaledHealth = 250;
@@ -874,13 +950,13 @@ public class md_blocks {
                                             shrinkX = 0.3f;
                                             shrinkY = 0.3f;
 
-                                            lightningCooldown = 12f;
-                                            lightningStatu = StatusEffects.shocked;
-                                            lightningEffect = new MultiEffect(md_Fx.starExplosionSmall,Fx.chainLightning);
+                                            shockCooldown = 12f;
+                                            shockStatus = StatusEffects.shocked;
+                                            shockEffect = new MultiEffect(md_Fx.starExplosionSmall,Fx.chainLightning);
                                             lightning = 5;
-                                            lightningRange = 80f;
-                                            lightningDamage = damage;
-                                            lightningColor = backColor = trailColor = hitColor = Color.valueOf("c0d8ff");
+                                            shockRange = 80f;
+                                            shockDamage = damage;
+                                            shockColor = backColor = trailColor = hitColor = Color.valueOf("c0d8ff");
 
                                             collidesAir = false;
                                             collidesGround = false;
@@ -973,6 +1049,166 @@ public class md_blocks {
                 }};
                 size = 4;
             }};
+            test4 = new ContinuousTurret("test4"){{
+                requirements(Category.turret,with());
+                size = 4;
+                shootType = new MultiPointLaserBullet(){{
+                    damage = 2500f/12f/3f;
+                    buildingDamageMultiplier = 0.3f;
+                    hitColor = Color.valueOf("fda981");
+                    amount = 3;
+                    trailLength = 15;
+                    trailWidth = 5f;
+                    angleRange(10);
+                    baseTraceRad = 5f;
+                    fractMulti = 0.7f;
+                    beamEffect = Fx.none;
+
+                    beginPos = new float[]{
+                            -8,-3,
+                            0,0,
+                            8,-3
+                    };
+                }
+                    @Override
+                    public void idleAct(Vec2 v, int i, Bullet b) {
+                        Vec2 bv = beginVec2[i].cpy().rotate(b.rotation()-90).scl(0.7f);
+                        v.set(
+                                Mathf.approachDelta(
+                                        v.x,
+                                        bv.x + Mathf.cos(Time.time/18 + Mathf.PI * 2 * i / amount, 1, 1.2f),
+                                        2f
+                                ),
+                                Mathf.approachDelta(
+                                        v.y,
+                                        bv.y + Mathf.sin(Time.time/18 + Mathf.PI * 2 * i / amount, 1, 1.2f),
+                                        2f
+                                )
+                        );
+                    }
+                };
+                warmupMaintainTime = 50f;
+                aimChangeSpeed =2;
+                range = 320f;
+                rotateSpeed = 60/60f;
+                shootCone = 360f;
+                unitSort = UnitSorts.strongest;
+                consume(new ConsumeBeam(80,md_beams.near_infrared_ligth));
+
+            }};
+            crest = new PayloadTurret("crest"){{
+                scaledHealth = 440;
+                squareSprite = false;
+                outlineColor = Pal.darkOutline;
+                requirements(Category.turret,with(
+                        md_items.ti_alloy,800,
+                        md_items.polymer,1500,
+                        md_items.al_alloy,1200,
+                        md_items.plasma,200,
+                        Items.silicon,1500
+                ));
+                maxAmmo = 6;
+                ammoPerShot = 2;
+                ammo(
+                        md_blocks.heavy_ammo,new BasicBulletType(40,3840,modname+"heavyammo"){{
+                            displayAmmoMultiplier = true;
+                            ammoMultiplier = 1;
+                            frontColor = backColor = trailColor = hitColor = Color.valueOf("E3E8FF");
+                            trailLength = 15;
+                            trailWidth = 2.5f;
+                            trailSinMag = 0.3f;
+                            trailSinScl = 0.5f;
+                            trailEffect = md_Fx.Mulitpleslash(30,4,hitColor,40,5,30);
+                            trailInterval = 1.2f;
+                            width = 25f;
+                            height = 43f;
+                            lifetime = 20f;
+                            hitSize = 15f;
+                            despawnEffect = new MultiEffect(md_Fx.starExplosionBig,md_Fx.spikeExplosion);
+                            hitEffect = new MultiEffect(md_Fx.spikeHit,md_Fx.spikeHitRotation);
+
+                            setDefaults = false;
+                            despawnHit = false;
+                            fragOnDespawn = true;
+                            despawnSound = new MultiSound(Sounds.explosionReactor,Sounds.explosionReactor2);
+                            hitSound = Sounds.explosionDull;
+
+                            pierce = true;
+                            pierceDamageFactor = 0.5f;
+                            pierceCap = 4;
+
+                            splashDamage = 1500;
+                            splashDamageRadius = 60f;
+
+                            fragBullets = 5;
+                            fragBullet = new BasicBulletType(11,300){{
+                                lifetime = 6;
+                                splashDamage = 500;
+                                splashDamageRadius = 60f;
+                                despawnHit = true;
+                                frontColor = backColor = trailColor = hitColor = Color.valueOf("E3E8FF");
+                                trailLength = 5;
+                                trailWidth = 1.5f;
+                                width = 12;
+                                height = 13;
+                                hitSound = Sounds.explosionPlasmaSmall;
+                                hitEffect = new MultiEffect(
+                                        md_Fx.waveColor(13,45,2.3f,Interp.linear),
+                                        md_Fx.waveColor(13,39,1.7f,Interp.linear),
+                                        md_Fx.waveColor(13,22.5f,1.7f,Interp.linear)
+                                        );
+                            }};
+
+                        }}
+                );
+                shootCone = 3f;
+                range = 8*100f;
+                reload = 220;
+                coolant = consumeCoolant(40f/60f);
+                coolantMultiplier = 0.6f;
+                size = 5;
+                shootWarmupSpeed = 0.03f;
+                minWarmup = 0.98f;
+                warmupMaintainTime = 300f;
+                shootSound = Sounds.explosionReactor2;
+                shootSoundVolume = 0.8f;
+                soundPitchMin = 1.3f;
+                soundPitchMax = 1.65f;
+                shootEffect = new MultiEffect(md_Fx.crestShoot,md_Fx.crestShootFlame);
+                drawer = new DrawTurret("steady-state-"){{
+                    parts.addAll(
+                            new RegionPart("-end"){{
+                                mirror = true;
+                                moves.add(new PartMove(PartProgress.warmup,8f/4,-8f/4,0));
+                                moves.add(new PartMove(PartProgress.recoil,5f/4,-5f/4,0));
+                                under = false;
+                            }},
+                            new RegionPart("-side"){{
+                                mirror = true;
+                                moves.add(new PartMove(PartProgress.warmup,20f/4,4f/4,8));
+                                moves.add(new PartMove(PartProgress.recoil,5f/4,0,-7));
+                            }},
+                            new RegionPart("-blade"){{
+                                mirror = true;
+                                moves.add(new PartMove(PartProgress.warmup,15f/4,-9f/4,0));
+                                moves.add(new PartMove(PartProgress.recoil,3f/4,0,4));
+                            }},
+                            new RegionPart("-mid"){{
+                                under = false;
+                            }},
+                            new RegionPart("-barrel-under"){{
+                                mirror = true;
+                                moves.add(new PartMove(PartProgress.warmup,12f/4,23f/4,3));
+                                moves.add(new PartMove(PartProgress.recoil,6f/4,-4f/4,0));
+                            }},
+                            new RegionPart("-barrel"){{
+                                mirror = true;
+                                moves.add(new PartMove(PartProgress.warmup,13.2f/4,4f/4,3));
+                                moves.add(new PartMove(PartProgress.recoil,6f/4,-4f/4,0));
+                            }}
+                    );
+                }};
+            }};
         //endregion
         //region core
             coreSteady = new md_ElectricFieldCoreBlock("core-steady"){{
@@ -984,7 +1220,7 @@ public class md_blocks {
                 powerProduction = 5f;
 
                 isFirstTier = true;
-                unitType =  UnitTypes.evoke;
+                unitType =  md_UnitTypes.primitive;
                 armor = 5;
                 health = 4000;
                 itemCapacity = 6000;
@@ -996,6 +1232,27 @@ public class md_blocks {
                 unitCapModifier = 15;
                 size = 4;
                 fullOverride = this.name + "-private";
+            }};
+
+            proof_container = new StorageBlock("proof-container"){{
+                requirements(Category.effect, with(md_items.aluminium,80,md_items.polymer,60));
+                size = 2;
+                itemCapacity = 220;
+                scaledHealth = 100;
+                baseExplosiveness = -100f;
+                explosivenessScale = 0.015f;
+                flammabilityScale = 0.1f;
+                fullOverride = this.name + "-full";
+            }};
+            
+            stack = new DumpStorageBlock("stack"){{
+                requirements(Category.effect, with(md_items.aluminium,20,md_items.polymer,15,Items.silicon,20));
+                buildCostMultiplier = 2;
+                size = 1;
+                health = 100;
+                solid = false;
+                fullOverride = this.name + "-full";
+                itemCapacity = 40;
             }};
         //endregion
         //region power
@@ -1018,6 +1275,46 @@ public class md_blocks {
                     );
         }};
         //endregion
+        //region payload
+        small_payload_conveyor = new md_PayloadConveyor("small-payload-conveyor",2){{
+            requirements(Category.units,with());
+            canOverdrive = false;
+            payloadLimit = 2f;
+            moveTime = 25f;
+            moveForce = 100;
+            health = 400;
+        }};
+        small_payload_router = new md_PayloadRouter("small-payload-router",2){{
+            requirements(Category.units,with());
+            canOverdrive = false;
+            payloadLimit = 2f;
+            moveTime = 25;
+            moveForce = 100;
+            health = 400;
+        }};
+        //endregion
+        //region ammo
+        ammo_constructor = new Constructor("ammo-constructor"){{
+            requirements(Category.turret, with(Items.silicon, 50, Items.beryllium, 75, Items.tungsten, 40));
+            regionSuffix = "-ammo";
+            hasPower = true;
+            buildSpeed = 0.6f;
+            consumePower(2.5f);
+            size = 3;
+            //TODO expand this list
+            filter = Seq.with(md_blocks.heavy_ammo);
 
+        }};
+        //endregion
+    }
+    public static void loadAmmo(){
+        heavy_ammo = new AmmoBlock("heavy-ammo"){{
+            requirements = ItemStack.with(md_items.al_alloy,20,md_items.polymer,15);
+            // Explosion properties
+            baseExplosiveness = 20; // Base explosion power
+
+            size = 1;
+            buildCostMultiplier = 30f;
+        }};
     }
 }

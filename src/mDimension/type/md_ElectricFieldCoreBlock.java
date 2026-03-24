@@ -11,8 +11,10 @@ import arc.math.geom.Vec2;
 import arc.struct.Seq;
 import arc.util.Strings;
 import arc.util.Time;
+import arc.util.Tmp;
 import arc.util.io.Reads;
 import arc.util.io.Writes;
+import mDimension.tool.Drawff;
 import mindustry.Vars;
 import mindustry.content.Fx;
 import mindustry.content.StatusEffects;
@@ -139,13 +141,18 @@ public class md_ElectricFieldCoreBlock extends CoreBlock {
             Draw.color(this.team.color);
             Draw.alpha(0.9f);
             Fill.circle(x,y,rad);
+            if(rad>0.1f) Drawff.prominence(
+                    id,
+                    x,y,
+                    12,12,rad*1.4f,
+                    rad*1.2f,rad,6);
             Lines.stroke(warmup*4.5f/ballRadius);
             for(int i = 0;i<5;i++){
                 Lines.arc(x,y,rad*1.22f,1/6.5f,(Time.time)/3 + i*(360f/5f));
             }
-            if(Time.time%15<=Time.delta&&!Vars.state.isPaused()){
-                md_Fx.leakage.at(x,y,0,team.color.cpy().a(0.9f),new float[]{rad,rad,1});
-            }
+//            if(Time.time%15<=Time.delta&&!Vars.state.isPaused()){
+//                md_Fx.leakage.at(x,y,0,team.color.cpy().a(0.9f),new float[]{rad,rad,1});
+//            }
             Draw.color(Color.white.cpy().lerp(this.team.color, 0.4F));
             Fill.circle(x,y,rad*0.6f);
 

@@ -13,20 +13,27 @@ import mDimension.entity.EntityShield;
 import mDimension.entity.VisibleEffect;
 import mindustry.Vars;
 import mindustry.content.Fx;
+import mindustry.ctype.UnlockableContent;
 import mindustry.entities.Effect;
 
 import arc.graphics.Color;
+import mindustry.gen.Building;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Pal;
 import mindustry.graphics.Shaders;
+import mindustry.type.UnitType;
+import mindustry.world.Block;
+import mindustry.world.blocks.payloads.Payload;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static arc.graphics.g2d.Draw.*;
+import static arc.graphics.g2d.Lines.line;
 import static arc.graphics.g2d.Lines.lineAngle;
 import static arc.graphics.g2d.Lines.stroke;
 import static arc.math.Angles.randLenVectors;
+import static mindustry.Vars.tilesize;
 
 public class md_Fx {
         public static final Rand rand = new Rand();
@@ -209,8 +216,8 @@ public class md_Fx {
 
         Lines.stroke(2.6f * e.fout());
         Draw.color(Color.white, e.color,e.fin()*0.5f);
-        Fill.circle(e.x,e.y,3f*e.fout());
-        Fill.circle(tx,ty,3f*e.fout());
+        Fill.circle(e.x,e.y,4.5f*e.fout());
+        Fill.circle(tx,ty,4.5f*e.fout());
         Lines.beginLine();
 
         Lines.linePoint(e.x, e.y);
@@ -245,6 +252,97 @@ public class md_Fx {
         Fill.circle(e.x,e.y,e.fin()*7f);
         color(Color.white);
         Fill.circle(e.x,e.y,e.fin()*4f);
+    }),
+    spikeExplosion = new Effect(40f,100f,e->{
+        color(e.color);
+        randLenVectors(e.id,9,16,16,(x,y)->{
+            float len = Mathf.len(x,y);
+            float rot = Mathf.angle(x,y);
+            float len2 = len*len*0.17f;
+            Drawf.tri(e.x+x,e.y+y,
+                    len*0.6f*e.foutpowdown(),len2*(e.foutpowdown()+2)/3,rot);
+            Drawf.tri(e.x+x,e.y+y,
+                    len*0.6f*e.foutpowdown(),len2*(e.foutpowdown()+2)*0.2f/3,rot+180f);
+        });
+    }),
+    spikeHit = new Effect(40f,130f,e->{
+        color(e.color);
+        randLenVectors(e.id,11,50,120,(x,y)->{
+            float rot = Mathf.angle(x,y);
+            float len = Mathf.len(x,y);
+
+            Drawf.tri(e.x,e.y,(len/20+7)*e.foutpowdown(),len*(e.fout()+2)/3,rot);
+        });
+    }),
+    spikeHitRotation = new Effect(35f,100f,e->{
+        color(e.color);
+        rand.setSeed(e.id);
+        for(int i = 0; i < 7; i++){
+            v.trns(e.rotation + rand.range(25), rand.random(20)+12);
+            float rot = Mathf.angle(v.x,v.y);
+            float len = Mathf.len(v.x,v.y);
+            float len2 = len*len*0.15f;
+            Drawf.tri(e.x+v.x,e.y+v.y,
+                    len*0.5f*e.foutpowdown(),len2*(e.foutpowdown()+2)/3,rot);
+            Drawf.tri(e.x+v.x,e.y+v.y,
+                    len*0.5f*e.foutpowdown(),len2*(e.foutpowdown()+2)*0.25f/3,rot+180f);
+        }
+    }),
+    crestShootFlame = new Effect(35f,e->{
+
+        for(int j:Mathf.zeroOne) {
+            float s = 1f-0.6f*j;
+            color(Color.valueOf("CCDDFF"),Color.white,j);
+            for (int i : Mathf.signs) {
+                Drawf.tri(e.x, e.y, s*16 * e.fout(), s*100, e.rotation + 90 * i);
+                Drawf.tri(e.x, e.y, s*12 * e.fout(), s*70, e.rotation + 20 * i);
+                Drawf.tri(e.x, e.y, s*7 * e.fout(), s*50, 90 + 90 * i);
+            }
+            Drawf.tri(e.x,e.y,s*12*e.fout(),s*60,e.rotation+180);
+        }
+
+    }),
+    crestShoot = new Effect(20f,e->{
+
+        for(int j:Mathf.zeroOne) {
+            float s = 1f-0.6f*j;
+            color(Color.valueOf("CCDDFF"),Color.white,j);
+            for (int i=0 ;i<3;i++) {
+                Drawf.tri(e.x, e.y, s*12 * e.fout(), s*40, Mathf.randomSeed(e.id,120)+120 * i);
+            }
+            Lines.stroke(e.fout()*1.5f);
+            Lines.circle(e.x,e.y,(1-s*0.8f)*30*e.finpow());
+        }
+
+    }),
+    payloadInput = new Effect(20f,e->{
+        if(e.data instanceof Object[] data){
+            if(data[0] instanceof UnlockableContent cont && data[1] instanceof Vec2 cv) {
+                TextureRegion t = cont.fullIcon;
+                z(Layer.blockOver);
+                color(Color.white, Pal.lighterOrange, e.fin());
+                alpha(e.fout());
+                float cx = e.x+e.fout()*cv.x,cy = e.y+e.fout()*cv.y;
+                rect(t,cx,cy);
+
+                z(Layer.blockOver-0.01f);
+
+                if(cont instanceof Block b) {
+                    Drawf.squareShadow(cx, cy, b.size * tilesize * 1.85f, e.fout());
+                }
+                reset();
+            }
+        }
+    }),
+
+    triangle = new Effect(30f,e->{
+        rand.setSeed(e.id);
+        color(e.color,Color.white,e.fout()*0.8f);
+        float radius = 3f;
+        float angle = rand.random(120);
+        v.set(1,0).setAngle(angle+180).setLength(radius*e.fout());
+        Drawf.tri(e.x+v.x,e.y+v.y,radius*1.732f*2*e.fout(),radius*3f*e.fout(),angle);
+        Draw.reset();
     }),
 
 
@@ -348,8 +446,6 @@ public class md_Fx {
             }
             Draw.reset();
 
-
-
 ;        });
     }
     public static Effect dimension_vapor(float life,float alpha,float size){
@@ -425,6 +521,14 @@ public class md_Fx {
             Draw.reset();
         });
     }
+    public static Effect waveColor(float life, float radius, float stroke,Interp interp){
+        return new Effect(life, e -> {
+            color(e.color);
+            stroke(e.fout() * stroke);
+            Lines.circle(e.x, e.y, e.fin(interp) * (radius));
+            Draw.reset();
+        });
+    }
     public static Effect waveHitColor(float life, float radius, float lineSize, float stroke,float alpha){
         return new Effect(life, e -> {
             color(e.color,Color.white,e.fin());
@@ -452,6 +556,72 @@ public class md_Fx {
             for(int i = e.id%spawn.length,j = 0; j < amount; j++,i++){
                 v.trns(rand.random(360f), rand.random(2.5f+e.fin()*size));
                 Fill.poly(e.x + v.x + spawn[(i*2)%spawn.length], e.y + v.y + spawn[(i*2+1)%spawn.length], 4, e.foutpowdown()*2.5f);
+            }
+            Draw.reset();
+        });
+    }
+    public static Effect brokenWave(float life,Color color,float rad,float startRad,float stroke,int paragraph,float spread,float fractionScl){
+        return new Effect(life,e->{
+            color(color);
+            rand.setSeed(e.id);
+            float[] paragraphSpacing = new float[paragraph*2];
+            float count = 0;
+            for(int i = 0;i<paragraph *2 ;i++){
+                float rand1 = rand.range(spread) + 1;
+                paragraphSpacing[i] =rand1;
+                count+=rand1;
+            }
+            float p = 360f/(paragraph*2f);
+            float scl = 360/count;
+            float paraScl = e.foutpowdown();
+            float radius = rad*e.finpow()+startRad;
+            Lines.stroke(e.fout()*stroke);
+            for(int i = 0;i<paragraph ;i++){
+                float fraction = paragraphSpacing[i*2]*scl;
+                Lines.arc(e.x,e.y,radius * (4-fraction/p)/3,paraScl*fraction/360*fractionScl,count-paraScl*fraction*fractionScl/2);
+                count+=(paragraphSpacing[i*2] + paragraphSpacing[i*2 +1])*scl;
+            }
+
+            Draw.reset();
+        });
+    }
+    public static Effect brokenWaveColor(float life,float rad,float startRad,float stroke,int paragraph,float spread,float fractionScl){
+        return new Effect(life,e->{
+            color(e.color);
+            rand.setSeed(e.id);
+            float[] paragraphSpacing = new float[paragraph*2];
+            float count = 0;
+            for(int i = 0;i<paragraph *2 ;i++){
+                float rand1 = rand.range(spread) + 1;
+                paragraphSpacing[i] =rand1;
+                count+=rand1;
+            }
+            float p = 360f/(paragraph*2f);
+            float scl = 360/count;
+            float paraScl = e.foutpowdown();
+            float radius = rad*e.finpow()+startRad;
+            Lines.stroke(e.fout()*stroke);
+            for(int i = 0;i<paragraph ;i++){
+                float fraction = paragraphSpacing[i*2]*scl;
+                Lines.arc(e.x,e.y,radius * (4-fraction/p)/3,paraScl*fraction/360*fractionScl,count-paraScl*fraction*fractionScl/2);
+                count+=(paragraphSpacing[i*2] + paragraphSpacing[i*2 +1])*scl;
+            }
+
+            Draw.reset();
+        });
+    }
+
+    public static Effect polyStarExplosion(float life,int amount,float length,float width,float rotation,boolean hasCap){
+        return new Effect(life,length*2,e->{
+            float len = length*e.fout()+(hasCap?width*0.8f:0);
+            float wid = width * (!hasCap?e.foutpowdown():1);
+
+            for(int o:Mathf.zeroOne) {
+                color(e.color,Color.white,o*0.95f);
+                float scl = 1-o*0.4f;
+                for (int i = 0; i < amount; i++) {
+                    Drawf.tri(e.x, e.y, wid*scl, len*scl, i * (360f / amount) + rotation + e.rotation);
+                }
             }
             Draw.reset();
         });

@@ -18,7 +18,7 @@ public class md_StatusEffects {
             dimension_slip,cracking,move_out,embrittlement,explore,bless;
     public static void load(){
         dimension_slip = new StatusEffect("dimension-slip"){{
-            color = new Color(0xFFFFFFFF);
+            color = Color.valueOf("ffffff");
             healthMultiplier = 0.65f;
             damageMultiplier = 0.8f;
             speedMultiplier = 1.5f;
@@ -30,7 +30,8 @@ public class md_StatusEffects {
         cracking = new md_complexStatusEffect("cracking"){{
             percentageShieldDamage = 0.3f/60f;
             damage = 100f/60f;
-            color = Color.white;
+            color = Color.valueOf("ffffff");
+
             draw = e->{
                 if(e.shield>0) {
                     float size = Math.min(1f,e.shield/(e.maxHealth*0.25f));
@@ -51,9 +52,9 @@ public class md_StatusEffects {
         }};
 
         move_out = new md_complexStatusEffect("move-out"){{
+            color = Color.valueOf("ffffff");
             percentageDamage = -0.02f/60f;
             armorMultiplier = 0.5f;
-            color = new Color(0xFFFFFFFF);
             act = e->{
                 if(e.health<e.maxHealth){
                     e.health = e.maxHealth;
@@ -93,6 +94,7 @@ public class md_StatusEffects {
 
         }};
         explore = new md_complexStatusEffect("explore"){{
+            color = Color.valueOf("ffffff");
             intervalDamageTime = 60f;
             intervalDamagePierce = true;
             intervalDamage = 500f;
@@ -106,6 +108,7 @@ public class md_StatusEffects {
         }};
 
         bless = new md_complexStatusEffect("bless"){{
+            color = Color.valueOf("ffffff");
             percentageDamage = -0.05f/60f;
             damage = -50/60f;
             damageMultiplier = 1.15f;

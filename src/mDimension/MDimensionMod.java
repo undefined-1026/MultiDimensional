@@ -9,6 +9,7 @@ import mDimension.meta.md_StatUnit;
 import mindustry.Vars;
 import mindustry.core.Renderer;
 import mindustry.game.EventType;
+import mindustry.graphics.Shaders;
 import mindustry.mod.Mod;
 import mindustry.ui.dialogs.BaseDialog;
 
@@ -42,6 +43,8 @@ public class MDimensionMod extends Mod {
 //    }
     @Override
     public void loadContent(){
+
+        Shaders.init();
         super.loadContent();
         //载入
 
@@ -52,8 +55,9 @@ public class MDimensionMod extends Mod {
         md_StatusEffects.load();
         md_items.load();
         md_liquids.load();
+        md_environment.load();
+        md_UnitTypes.load();
         md_blocks.load();
-        md_UnitType.load();
         original_reset.load();
 
         md_SectorPresets.load();
