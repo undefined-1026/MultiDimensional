@@ -25,7 +25,10 @@ import mindustry.entities.UnitSorts;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.MultiEffect;
 import mindustry.entities.effect.WaveEffect;
+import mindustry.entities.part.DrawPart;
+import mindustry.entities.part.HaloPart;
 import mindustry.entities.part.RegionPart;
+import mindustry.entities.part.ShapePart;
 import mindustry.entities.pattern.*;
 import mindustry.gen.Bullet;
 import mindustry.gen.Sounds;
@@ -46,9 +49,13 @@ import mindustry.world.blocks.distribution.StackConveyor;
 import mindustry.world.blocks.payloads.Constructor;
 import mindustry.world.blocks.production.GenericCrafter;
 import mindustry.world.blocks.production.HeatCrafter;
+import mindustry.world.blocks.production.SolidPump;
 import mindustry.world.blocks.storage.StorageBlock;
 import mindustry.world.draw.*;
+import mindustry.world.meta.Attribute;
+import mindustry.world.meta.BlockGroup;
 import mindustry.world.meta.BuildVisibility;
+import mindustry.world.meta.Env;
 
 import static arc.graphics.g2d.Draw.alpha;
 import static arc.graphics.g2d.Draw.color;
@@ -62,11 +69,13 @@ public class md_blocks {
     public static Block
             aluminium_electrolysis_cell, al_alloy_smelting,ultraviolet_laser,
             ti_alloy_smelting, helium_factory, infrared_laser, test2,diagonal_beam_merging_prism,
+            water_pyrolyzer,
     //distribution
     beam_merging_prism,
             multiway_unloader, polymer_compressor, al_alloy_duct_bridge,
             ngm_launch_pad, light_duct,armored_light_duct,stack_rail_conveyor,
-
+    //drill
+    deep_water_extractor,
     //ammo
     heavy_ammo,
     //turret
@@ -405,6 +414,63 @@ public class md_blocks {
                     new DrawRegion("-top")
             );
 
+        }};
+        water_pyrolyzer = new GenericCrafter("water-pyrolyzer"){{
+            requirements(Category.crafting, with(Items.silicon, 70,md_items.al_alloy, 40, md_items.polymer, 80, md_items.aluminium, 120));
+            size = 2;
+            craftTime = 10f;
+            rotate = true;
+            invertFlip = true;
+            group = BlockGroup.liquids;
+            itemCapacity = 0;
+
+            liquidCapacity = 100;
+
+            consumeLiquid(Liquids.water, 20 / 60f);
+            consumePower(1f);
+            consume(new ConsumeBeam(10,md_beams.near_infrared_ligth));
+            warmupSpeed = 0.003f;
+
+            drawer = new DrawMulti(
+                    new DrawRegion("-bottom"),
+                    new DrawLiquidTile(Liquids.water, 2f),
+                    new DrawBubbles(Color.valueOf("7693e3")){{
+                        sides = 10;
+                        recurrence = 3f;
+                        spread = 6;
+                        radius = 1.5f;
+                        amount = 20;
+                    }},
+                    new DrawRegion(),
+                    new DrawLiquidOutputs(),
+                    new DrawGlowRegion(){{
+                        alpha = 0.7f;
+                        color = Color.valueOf("c4bdf3");
+                        glowIntensity = 0.3f;
+                        glowScale = 6f;
+                    }}
+            );
+
+            ambientSound = Sounds.loopElectricHum;
+            ambientSoundVolume = 0.08f;
+
+            regionRotated1 = 3;
+            outputLiquids = LiquidStack.with(Liquids.ozone, 8f / 60, Liquids.hydrogen, 12f / 60);
+            liquidOutputDirections = new int[]{1, 3};
+        }};;
+        //endregion
+        // region drill
+        deep_water_extractor = new SolidPump("deep-water-extractor"){{
+            requirements(Category.production,with(Items.silicon,40,md_items.aluminium,30,md_items.polymer,30));
+            result = Liquids.water;
+            pumpAmount = 10.2f/60f;
+            size = 2;
+            liquidCapacity = 150;
+            rotateSpeed = 1.1f;
+            attribute = Attribute.water;
+            envRequired |= Env.groundWater;
+
+            consumePower(1.5f);
         }};
         //endregion
         //region distribution
@@ -1100,6 +1166,7 @@ public class md_blocks {
                 scaledHealth = 440;
                 squareSprite = false;
                 outlineColor = Pal.darkOutline;
+                unitSort = UnitSorts.strongest;
                 requirements(Category.turret,with(
                         md_items.ti_alloy,800,
                         md_items.polymer,1500,
@@ -1164,6 +1231,7 @@ public class md_blocks {
                 shootCone = 3f;
                 range = 8*100f;
                 reload = 220;
+                rotateSpeed = 2;
                 coolant = consumeCoolant(40f/60f);
                 coolantMultiplier = 0.6f;
                 size = 5;
@@ -1176,6 +1244,11 @@ public class md_blocks {
                 soundPitchMax = 1.65f;
                 shootEffect = new MultiEffect(md_Fx.crestShoot,md_Fx.crestShootFlame);
                 drawer = new DrawTurret("steady-state-"){{
+
+                    float haloY = -15f;
+                    var haloProgress = DrawPart.PartProgress.warmup.delay(0.3f);
+                    float haloRotSpeed = 0.7f;
+                    Color haloColor = Color.valueOf("F2F8FF");
                     parts.addAll(
                             new RegionPart("-end"){{
                                 mirror = true;
@@ -1185,8 +1258,8 @@ public class md_blocks {
                             }},
                             new RegionPart("-side"){{
                                 mirror = true;
-                                moves.add(new PartMove(PartProgress.warmup,20f/4,4f/4,8));
-                                moves.add(new PartMove(PartProgress.recoil,5f/4,0,-7));
+                                moves.add(new PartMove(PartProgress.warmup,20f/4,-3f/4,3));
+                                moves.add(new PartMove(PartProgress.recoil,5f/4,-3/4f,-7));
                             }},
                             new RegionPart("-blade"){{
                                 mirror = true;
@@ -1205,9 +1278,159 @@ public class md_blocks {
                                 mirror = true;
                                 moves.add(new PartMove(PartProgress.warmup,13.2f/4,4f/4,3));
                                 moves.add(new PartMove(PartProgress.recoil,6f/4,-4f/4,0));
+                            }},
+
+                            new ShapePart(){{
+                                progress = PartProgress.warmup.delay(0.2f);
+                                color = haloColor;
+                                sides = 4;
+                                hollow = false;
+                                stroke = 0f;
+                                radius = 0;
+                                radiusTo = 4f;
+                                layer = Layer.effect;
+                                y = haloY;
+                            }},
+                            new ShapePart(){{
+                                progress = PartProgress.warmup.delay(0.2f);
+                                color = haloColor;
+                                sides = 4;
+                                hollow = true;
+                                stroke = 0;
+                                strokeTo = 2f;
+                                radius = 9f;
+                                layer = Layer.effect;
+                                y = haloY;
+                            }},
+                            new HaloPart(){{
+                                progress = haloProgress;
+                                color = haloColor;
+                                layer = Layer.effect;
+                                y = haloY;
+                                haloRotateSpeed = 0;
+
+                                shapes = 2;
+                                triLength = 0f;
+                                triLengthTo = 35f;
+                                haloRotation = 90;
+                                haloRadius = 7;
+                                tri = true;
+                                radius = 4;
+                            }},
+                            new HaloPart(){{
+                                progress = haloProgress;
+                                color = haloColor;
+                                layer = Layer.effect;
+                                y = haloY;
+                                haloRotateSpeed = 0;
+
+                                shapes = 2;
+                                triLength = 0f;
+                                triLengthTo = 12;
+                                haloRotation = 0;
+                                haloRadius = 7;
+                                tri = true;
+                                radius = 4;
+                            }},
+                            new HaloPart(){{
+                                progress = haloProgress;
+                                color = haloColor;
+                                layer = Layer.effect;
+                                y = haloY;
+                                haloRotateSpeed = 0;
+
+                                shapes = 4;
+                                triLength = 0f;
+                                triLengthTo = 3;
+                                haloRotation = 45;
+                                haloRadius = 12;
+                                tri = true;
+                                radius = 6;
+                            }},
+                            new HaloPart(){{
+                                progress = haloProgress;
+                                color = haloColor;
+                                layer = Layer.effect;
+                                y = haloY;
+                                haloRotateSpeed = 0;
+
+                                shapes = 4;
+                                triLength = 0f;
+                                triLengthTo = 3;
+                                haloRotation = 45;
+                                shapeRotation = 180f;
+                                haloRadius = 12;
+                                tri = true;
+                                radius = 6;
+                            }},
+                            new HaloPart(){{
+                                progress = PartProgress.warmup.delay(0.2f).mul(p->(1-p.reload));
+                                color = haloColor;
+                                layer = Layer.effect;
+                                y = haloY;
+                                haloRotateSpeed = 0;
+
+                                shapes = 2;
+                                triLength = 0f;
+                                triLengthTo = 16;
+                                haloRotation = 22.5f+45;
+                                shapeRotation = -22.5f;
+                                haloRadius = 16;
+                                tri = true;
+                                radius = 4;
+                            }},
+                            new HaloPart(){{
+                                progress = PartProgress.warmup.delay(0.2f).mul(p->(1-p.reload));
+                                color = haloColor;
+                                layer = Layer.effect;
+                                y = haloY;
+                                haloRotateSpeed = 0;
+
+                                shapes = 2;
+                                triLength = 0f;
+                                triLengthTo = 4;
+                                haloRotation = 22.5f+45;
+                                shapeRotation = -22.5f + 180;
+                                haloRadius = 16;
+                                tri = true;
+                                radius = 4;
+                            }},
+                            new HaloPart(){{
+                                progress = PartProgress.warmup.delay(0.2f).mul(p->(1-p.reload));
+                                color = haloColor;
+                                layer = Layer.effect;
+                                y = haloY;
+                                haloRotateSpeed = 0;
+
+                                shapes = 2;
+                                triLength = 0f;
+                                triLengthTo = 16;
+                                haloRotation = -22.5f-45;
+                                shapeRotation = 22.5f;
+                                haloRadius = 16;
+                                tri = true;
+                                radius = 4;
+                            }},
+                            new HaloPart(){{
+                                progress = PartProgress.warmup.delay(0.2f).mul(p->(1-p.reload));
+                                color = haloColor;
+                                layer = Layer.effect;
+                                y = haloY;
+                                haloRotateSpeed = 0;
+
+                                shapes = 2;
+                                triLength = 0f;
+                                triLengthTo = 4;
+                                haloRotation = -22.5f-45f;
+                                shapeRotation = 22.5f + 180;
+                                haloRadius = 16;
+                                tri = true;
+                                radius = 4;
                             }}
                     );
                 }};
+                loopSound = Sounds.loopGlow;
+                loopSoundVolume = 0.8f;
             }};
         //endregion
         //region core

@@ -242,7 +242,7 @@ public class md_Fx {
         Lines.endLine();
     }).followParent(false).rotWithParent(false),
 
-    dawnCharge = new Effect(50f, e -> {
+    dawnCharge = new Effect(55f, e -> {
         mixcol(Color.valueOf("F8D09E"), Color.white,e.fin());
         Lines.stroke(e.fslope()*1.5f);
         randLenVectors(e.id, 16, 1f + 30f * e.fout(),(x, y) -> {

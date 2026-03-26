@@ -147,7 +147,7 @@ public class md_UnitTypes {
 
             weapons.add(
                     new OverdriveWeapon(modname+"primitive-weapon1"){{
-                        lockedRange = 35*8f;
+                        lockedRange = 30*8f;
                         lockedTime = 50f;
                         reload = 30f;
                         extraDuration = 300f;
@@ -162,6 +162,7 @@ public class md_UnitTypes {
                         top = false;
                     }}
             );
+            clipSize = 32*8f;
         }};
         burst = new DepicilonUnitType("burst"){{
 
@@ -232,7 +233,7 @@ public class md_UnitTypes {
                         shootCone = 360f;
                         reload = 180f;
                         bullet = new BallLightningBulletType(){{
-                            shootEffect = md_Fx.polyStarExplosion(30,4,50,8,45,false);
+                            shootEffect = md_Fx.polyStarExplosion(45,4,50,6,45,false);
                             overflow = false;
                             shockAmount = 3;
                             shockLimit = 1;
@@ -352,7 +353,7 @@ public class md_UnitTypes {
                         controllable = false;
                         autoTarget = true;
                         x = 16;
-                        y = 6;
+                        y = 4.8f;
                         mirror = true;
                         layerOffset = -20;
                         shoot = new ShootBarrel(){{
@@ -382,7 +383,7 @@ public class md_UnitTypes {
                         shootY = 4f;
                         rotateSpeed = 240/60f;
                         rotate = true;
-                        rotationLimit = 240;
+                        rotationLimit = 361;
                         bullet = new BasicBulletType(22*8/60f,35,modname+"acicular-bullet"){{
                             homingPower = 0.02f;
                             lightningColor = backColor = trailColor = hitColor = Color.valueOf("FFE3A6");

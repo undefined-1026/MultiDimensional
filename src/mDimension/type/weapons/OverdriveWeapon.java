@@ -47,6 +47,7 @@ public class OverdriveWeapon extends Weapon {
     public OverdriveWeapon(){
     }
 
+
     @Override
     public void addStats(UnitType u, Table w){
         w.row();
