@@ -14,11 +14,15 @@ import arc.util.Strings;
 import mDimension.type.Beam;
 import mindustry.core.UI;
 import mindustry.ctype.UnlockableContent;
+import mindustry.type.ItemStack;
+import mindustry.type.Liquid;
 import mindustry.ui.Styles;
 import mindustry.world.meta.StatUnit;
+import mindustry.world.meta.StatValue;
 import mindustry.world.meta.StatValues;
 
 import static mindustry.Vars.content;
+import static mindustry.Vars.iconMed;
 
 public class md_StatValues extends StatValues {
     public static Stack BeamStack(Beam beam, float power){
@@ -83,6 +87,27 @@ public class md_StatValues extends StatValues {
             }).growX().pad(5f);
         }));
         return stack;
+    }
+    public static Table displayLiquid(Liquid liquid, float amount, boolean perSecond,boolean showName){
+        Table t = new Table();
+
+        t.add(new Stack(){{
+            add(new Image(liquid.uiIcon).setScaling(Scaling.fit));
+
+            if(amount != 0){
+                Table t = new Table().left().bottom();
+                t.add(Strings.autoFixed(amount, 3)).style(Styles.outlineLabel);
+                add(t);
+            }
+        }}).size(iconMed).padRight(3  + (amount != 0 ? (Strings.autoFixed(amount, 3).length() - 1) * 10 : 0)).with(s -> withTooltip(s, liquid, false));
+
+        if(perSecond && amount != 0){
+            t.add(StatUnit.perSecond.localized()).padLeft(1.5f).padRight(1.5f).color(Color.lightGray).style(Styles.outlineLabel);
+        }
+
+        if(showName)t.add(liquid.localizedName);
+
+        return t;
     }
 
 }

@@ -27,6 +27,7 @@ import mindustry.world.meta.StatUnit;
 
 public class PatienceAbility extends Ability {
     public float maxEffectThreshold = 0.4f;
+    public String suffix = "-patience";
     public float health = 1f;
     public float damage = 1f;
     public float speed = 1f;
@@ -42,7 +43,7 @@ public class PatienceAbility extends Ability {
 
     @Override
     public void init(UnitType type) {
-        if(drawHeat)heatRegion = Core.atlas.find(type.name+"-patience");
+        if(drawHeat)heatRegion = Core.atlas.find(type.name+suffix);
     }
 
     public PatienceAbility(){

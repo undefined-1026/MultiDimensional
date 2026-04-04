@@ -15,8 +15,13 @@ import mindustry.type.StatusEffect;
 
 public class md_StatusEffects {
     public static StatusEffect
-            dimension_slip,cracking,move_out,embrittlement,explore,bless;
+            dimension_slip,cracking,move_out,embrittlement,explore,bless,coordination;
     public static void load(){
+        coordination = new StatusEffect("coordination"){{
+            damageMultiplier = 1.2f;
+            reloadMultiplier = 1.2f;
+            speedMultiplier = 1.2f;
+        }};
         dimension_slip = new StatusEffect("dimension-slip"){{
             color = Color.valueOf("ffffff");
             healthMultiplier = 0.65f;

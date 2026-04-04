@@ -7,6 +7,7 @@ import arc.struct.Seq;
 import mDimension.meta.md_StatValues;
 import mDimension.type.Beam;
 import mDimension.type.md_LaserData;
+import mindustry.content.Items;
 import mindustry.gen.Building;
 import mindustry.ui.Bar;
 import mindustry.world.Block;
@@ -70,27 +71,31 @@ public class ConsumeBeam extends Consume {
 
     @Override
     public float efficiency(Building b) {
-        if(b.dead){
+        Items.copper.description = "";
+        for(ObjectMap.Entry<Building,LaserModule> e:laserDataMap){
+            Items.copper.description+="\n key"+e.key + "val:"+e.value;
+        }
+        if (b.dead) {
             laserDataMap.remove(b);
             return 0;
         }
-        if(laserDataMap.get(b)==null) {
-            laserDataMap.put(b,new LaserModule());
+        if (laserDataMap.get(b) == null) {
+            laserDataMap.put(b, new LaserModule());
         }
         float power = 0;
-        for(md_LaserData laserData:laserDataMap.get(b).laserDatas) {
+        for (md_LaserData laserData : laserDataMap.get(b).laserDatas) {
             if (
-                    (minWavelength < 0 || minWavelength <=laserData.wavelengthLevel ) &&
-                    (maxWavelength < 0 || laserData.wavelengthLevel <= maxWavelength) &&
-                    (inputBeam == null || inputBeam.name.equals(laserData.beam))
-            ){
+                    (minWavelength < 0 || minWavelength <= laserData.wavelengthLevel) &&
+                            (maxWavelength < 0 || laserData.wavelengthLevel <= maxWavelength) &&
+                            (inputBeam == null || inputBeam.name.equals(laserData.beam))
+            ) {
 
                 power += laserData.power;
             }
         }
         laserDataMap.get(b).laserDatas.clear();
         laserDataMap.get(b).power = power;
-        return Math.min(maxEfficiency,power/requiredPower);
+        return Math.min(maxEfficiency, power/requiredPower);
     }
 
     public float getLaserPower(Building b){
@@ -107,7 +112,7 @@ public class ConsumeBeam extends Consume {
     }
     @Override
     public void display(Stats stats){
-        stats.add(Stat.input,t->{
+        stats.add(booster ? Stat.booster : Stat.input,t->{
             if(inputBeam == null){
                 t.add(md_StatValues.BeamStack(requiredPower,minWavelength,maxWavelength,true));
             }else{

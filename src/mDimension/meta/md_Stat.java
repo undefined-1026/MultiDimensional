@@ -5,7 +5,7 @@ import mindustry.world.meta.StatCat;
 
 public class md_Stat{
     public static Stat
-            percentageDamage,percentageReply,armorAdditional,armorMultiplier,percentageShieldDamage,overdrive,maxEffectThreshold;
+            percentageDamage,percentageReply,armorAdditional,armorMultiplier,percentageShieldDamage,overdrive,maxEffectThreshold,recipes;
     public static void load(){
         percentageDamage = new Stat("percentageDamage");
         percentageReply = new Stat("percentageReply");
@@ -14,5 +14,6 @@ public class md_Stat{
         percentageShieldDamage = new Stat("percentageShieldDamage");
         overdrive = new Stat("overdrive", StatCat.function);
         maxEffectThreshold = new Stat("maxEffectThreshold",StatCat.function);
+        recipes = new Stat("recipes",StatCat.crafting);
     }
 }

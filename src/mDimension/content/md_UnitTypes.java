@@ -22,9 +22,13 @@ import mindustry.content.UnitTypes;
 import mindustry.entities.abilities.Ability;
 import mindustry.entities.abilities.EnergyFieldAbility;
 import mindustry.entities.abilities.ShieldRegenFieldAbility;
+import mindustry.entities.abilities.StatusFieldAbility;
 import mindustry.entities.bullet.BasicBulletType;
 import mindustry.entities.bullet.ContinuousFlameBulletType;
+import mindustry.entities.bullet.LaserBoltBulletType;
+import mindustry.entities.bullet.ShrapnelBulletType;
 import mindustry.entities.effect.MultiEffect;
+import mindustry.entities.part.DrawPart;
 import mindustry.entities.part.RegionPart;
 import mindustry.entities.pattern.ShootBarrel;
 import mindustry.entities.units.WeaponMount;
@@ -40,10 +44,185 @@ import static mindustry.Vars.tilesize;
 
 import static mDimension.content.md_blocks.modname;
 public class md_UnitTypes {
+    public static @EntityDef({Unitc.class,Mechc.class}) UnitType captive , zircon;
     public static @EntityDef({Unitc.class, ElevationMovec.class}) UnitType shimmer;
     public static @EntityDef({Unitc.class, Payloadc.class}) UnitType primitive ,burst;
 
     public static void load(){
+        zircon = new DepicilonUnitType("zircon"){{
+            constructor = MechUnit::create;
+
+            canBoost = true;
+            boostMultiplier = 1.2f;
+            riseSpeed = descentSpeed = 0.02f;
+
+            engineOffset = 6.5f;
+
+            researchCostMultiplier = 0.5f;
+            legForwardScl = 0.8f;
+            legLengthScl = 0.8f;
+            legMaxLength = 1.2f;
+            legMoveSpace = 0.8f;
+            legBaseUnder = true;
+            mechLegColor = Color.valueOf("4C4E5E");
+            legLength = 2f;
+            speed = 0.6f;
+            hitSize = 10f;
+            armor = 4f;
+            health = 1500;
+            stepSoundVolume = 0.5f;
+
+            abilities.add(
+                    new StatusFieldAbility(
+                            md_StatusEffects.coordination,
+                            4*60f,3.8f*60f,3*8f
+                    ){{
+                        activeEffect = md_Fx.polyWave(4,20f,0,1f,40f,Color.valueOf("D9FFFC"),0.95f);
+                    }}
+            );
+
+            weapons.add(
+                    new Weapon(modname+"zircon-weapon"){{
+                        reload = 40f;
+                        mirror = true;
+                        x = 27/4f;
+                        y = 0;
+                        recoil = 0.8f;
+                        top  =false;
+                        shootY = 2f;
+                        rotate = true;
+                        rotationLimit = 20f;
+                        rotateSpeed = 60/60f;
+
+                        shootSound = Sounds.shootDisperse;
+                        soundPitchMin = 0.85f;
+                        soundPitchMax = 1.1f;
+
+                        minWarmup = 0.55f;
+                        shootWarmupSpeed = 0.2f;
+                        parts.addAll(
+                                new RegionPart("-mid"){{
+                                    moves.add(new PartMove(PartProgress.warmup,0,0,6));
+                                }},
+                                new RegionPart("-blade"){{
+                                    under = true;
+                                    moves.add(new PartMove(PartProgress.warmup,1.2f,0,-7));
+                                }}
+                        );
+
+                        bullet = new BasicBulletType(4, 15){{
+                            recoil = 0;
+                            spin = 7f;
+                            hitColor=trailColor = backColor = Color.valueOf("B2E9FF");
+                            hitSound = Sounds.explosionCleroi;
+                            hitSoundVolume = 0.4f;
+                            trailLength = 8;
+                            trailWidth = 3;
+                            trailSinMag = 0.2f;
+                            trailSinScl = 5f;
+                            width = 12;
+                            height = 16;
+                            lifetime = 50f;
+                            despawnEffect = md_Fx.hitBulletColor(7f,4,30);
+                            hitEffect = md_Fx.hitBulletColor(13f,8,40);
+                            despawnHit = true;
+                            fragBullets = 1;
+                            fragOffsetMin = 0;
+                            fragOffsetMax = 0;
+                            fragBullet = new BasicBulletType(0,15,"circle-bullet"){{
+                                hitColor=trailColor = backColor = Color.valueOf("B2E9FF");
+                                lifetime = 8*60f;
+                                collidesTiles = true;
+                                despawnHit = true;
+                                hitSound = Sounds.explosionCrawler;
+
+                                trailEffect = md_Fx.Mulitpleslash(50,1,Color.valueOf("EBF8FF"),12,5,6);
+                                trailInterval = 18f;
+                                hitSoundVolume = 0.4f;
+                                fragBullets = 3;
+                                fragAngle = 60f;
+                                fragRandomSpread = 0f;
+                                fragSpread = 120f;
+                                width = height = 7f;
+                                shrinkX = shrinkY = 0.3f;
+                                hitSize = 6f;
+                                hitEffect = md_Fx.hitBulletColor(20f,10,50);
+                                fragBullet = new ShrapnelBulletType(){{
+                                    lifetime = 18f;
+                                    serrationSpaceOffset = 60;
+                                    segmentScl = 12f;
+                                    length = 18f;
+                                    damage = 20;
+                                    width = 8f;
+                                    hittable = false;
+                                    pierceArmor = true;
+                                    serrations = 2;
+
+                                }};
+                            }};
+                        }};
+                    }}
+            );
+        }};
+
+        captive = new DepicilonUnitType("captive"){{
+            constructor = MechUnit::create;
+
+            canBoost = true;
+            boostMultiplier = 1.2f;
+            riseSpeed = descentSpeed = 0.02f;
+
+            researchCostMultiplier = 0.5f;
+            legForwardScl = 0.8f;
+            legLengthScl = 0.8f;
+            legMaxLength = 1.2f;
+            legMoveSpace = 0.8f;
+            legBaseUnder = true;
+            legLength = 2f;
+            mechLegColor = Color.valueOf("4C4E5E");
+            speed = 0.6f;
+            hitSize = 10f;
+            armor = 3f;
+            health = 350;
+            stepSoundVolume = 0.4f;
+            abilities.add(
+                    new PatienceAbility(0.3f){{
+                        armor = 4;
+                        damage = 2.5f;
+                        drawHeat = true;
+                        heatColor = Color.valueOf("E8FFFE");
+                        suffix = "-p";
+                    }}
+            );
+
+            weapons.add(new Weapon(modname+"captive-weapon"){{
+                reload = 30;
+                x = 5.25f;
+                y = 0.75f;
+                recoil = 1.0f;
+                top = false;
+                ejectEffect = Fx.casing1;
+                shoot = new ShootBarrel(){{
+                    shots = 3;
+                    shotDelay = 4f;
+                }};
+                bullet = new BasicBulletType(2.5f, 9){{
+                    recoil = 0.18f;
+                    spin = 5f;
+                    hitColor=trailColor = backColor = Color.valueOf("B2E9FF");
+                    trailLength = 8;
+                    trailWidth = 1.5f;
+                    trailSinMag = 0.15f;
+                    trailSinScl = 5f;
+                    width = 6.5f;
+                    height = 10f;
+                    lifetime = 50f;
+                    despawnEffect = md_Fx.hitBulletColor(4f,3,12);
+                    hitEffect = md_Fx.hitBulletColor(6f,5,18);
+
+                }};
+            }});
+        }};
         shimmer = new DepicilonUnitType("shimmer"){{
             constructor = ElevationMoveUnit::create;
 

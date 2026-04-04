@@ -38,12 +38,12 @@ public class LaserEntity implements Entityc, Drawc {
     public Vec2 rotation = new Vec2(1,0);
     public Vec2 launchRotation;
 
-    public Seq<Vec2> points = new Seq<>();
+    public Seq<Vec2> points = new Seq<Vec2>();
 
     public float x;
     public float y;
 
-    public Seq<Building> passBuild = new Seq<>();
+    public Seq<Building> passBuild = new Seq<Building>();
 
     public Beam laser = md_beams.near_infrared_ligth;
     public md_LaserData laserData;

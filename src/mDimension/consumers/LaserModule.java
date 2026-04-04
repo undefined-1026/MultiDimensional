@@ -8,4 +8,9 @@ public class LaserModule {
     public Seq<md_LaserData> laserDatas = new Seq<>();
     public float power = 0;
     public LaserModule(){}
+
+    @Override
+    public String toString() {
+        return ""+power;
+    }
 }

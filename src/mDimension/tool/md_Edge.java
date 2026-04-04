@@ -6,6 +6,7 @@ import arc.math.geom.Vec2;
 import mindustry.Vars;
 import mindustry.gen.Building;
 import mindustry.world.Block;
+import mindustry.world.Tile;
 
 public class md_Edge {
     public static Vec2[] getFacingNearby(Building b){
@@ -87,5 +88,22 @@ public class md_Edge {
         v.x = Mathf.clamp(v.x,-sideLen/2,sideLen/2);
         v.y = Mathf.clamp(v.y,-sideLen/2,sideLen/2);
         return v;
+    }
+
+    public static int[] isInDiagonal(Building b, Tile t){
+        if(t == null || b == null)return new int[]{-1};
+        if(
+                Math.abs(
+                        Math.abs(b.x-t.worldx())-Math.abs(b.y-t.worldy())
+                )<0.01f
+        ){
+            if(t.worldx()>b.x && t.worldy()>b.y)return new int[]{2,3};
+            if(t.worldx()<b.x && t.worldy()>b.y)return new int[]{0,3};
+            if(t.worldx()>b.x && t.worldy()<b.y)return new int[]{1,2};
+            if(t.worldx()<b.x && t.worldy()<b.y)return new int[]{0,1};
+        }
+
+        return new int[]{-1};
+
     }
 }

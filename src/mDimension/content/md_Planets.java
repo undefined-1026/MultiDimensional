@@ -7,6 +7,8 @@ import mindustry.graphics.Pal;
 import mindustry.graphics.g3d.HexMesh;
 import mindustry.graphics.g3d.HexSkyMesh;
 import mindustry.graphics.g3d.MultiMesh;
+import mindustry.maps.planet.ErekirPlanetGenerator;
+import mindustry.maps.planet.SerpuloPlanetGenerator;
 import mindustry.type.Planet;
 import mindustry.content.Planets;
 import mindustry.world.meta.Env;
@@ -17,7 +19,9 @@ public class md_Planets {
         depicilon = new Planet("depicilon",Planets.sun,1f,3){{
             loadPlanetData = true;
             orbitRadius = 75;
-            generator = new DepicilonPlanetGenerator();
+            generator = new DepicilonPlanetGenerator(){{
+
+            }};
             meshLoader = () -> new HexMesh(this, 6);
             cloudMeshLoader = () -> new MultiMesh(
                     new HexSkyMesh(this, 48, 2.2f, 0.10f, 5, new Color().set(Color.valueOf("a8a040")).mul(0.9f).a(0.9f), 4, 0.40f, 1.3f, 0.40f),
@@ -26,7 +30,7 @@ public class md_Planets {
                     new HexSkyMesh(this, 25, -5f, 0.32f, 5, Color.white.cpy().lerp(Color.valueOf("a8a040"), 0.55f).a(0.50f), 5, 0.41f, 1.2f, 0.22f)
             );
             launchCapacityMultiplier = 0.15f;
-            sectorSeed = 48;
+            sectorSeed = 1145;
             allowSectorInvasion = false;
             allowLaunchSchematics = true;
             enemyCoreSpawnReplace = true;
@@ -38,6 +42,7 @@ public class md_Planets {
                 r.showSpawns = true;
                 r.coreDestroyClear = true;
                 r.env = defaultEnv;
+                r.borderDarkness = false;
             };
             showRtsAIRule = true;
             prebuildBase = true;

@@ -1,9 +1,7 @@
 package mDimension.content;
 
 import arc.struct.Seq;
-import mindustry.content.Blocks;
-import mindustry.content.Items;
-import static mindustry.content.Items.*;
+
 import static mDimension.content.md_items.*;
 import static mDimension.content.md_liquids.*;
 import static mDimension.content.md_blocks.*;
@@ -28,7 +26,7 @@ public class md_TechTree {
                         node(md_blocks.ngm_launch_pad);
                     });
                     node(md_blocks.multiway_unloader);
-                    node(md_blocks.al_alloy_duct_bridge);
+                    node(md_blocks.light_duct_bridge);
                     node(md_blocks.stack_rail_conveyor);
                 });
                 node(md_blocks.light_duct);

@@ -1,22 +1,66 @@
 package mDimension.plante;
 
 import arc.graphics.Color;
+import arc.math.Angles;
+import arc.math.Interp;
 import arc.math.Mathf;
+import arc.math.Rand;
+import arc.math.geom.Geometry;
+import arc.math.geom.Point2;
+import arc.math.geom.Vec2;
 import arc.math.geom.Vec3;
+import arc.struct.*;
+import arc.util.Structs;
+import arc.util.Tmp;
+import arc.util.noise.Ridged;
 import arc.util.noise.Simplex;
 import mDimension.content.md_Planets;
+import mDimension.content.md_environment;
 import mDimension.content.md_items;
+import mindustry.ai.Astar;
+import mindustry.ai.BaseRegistry;
+import mindustry.content.Blocks;
+import mindustry.content.Items;
+import mindustry.content.Liquids;
 import mindustry.content.Planets;
+import mindustry.game.Schematics;
+import mindustry.game.Team;
+import mindustry.game.Waves;
 import mindustry.maps.generators.BaseGenerator;
+import mindustry.maps.generators.BlankPlanetGenerator;
 import mindustry.maps.generators.PlanetGenerator;
 import mindustry.maps.planet.SerpuloPlanetGenerator;
 import mindustry.type.Sector;
+import mindustry.world.Block;
+import mindustry.world.Tile;
+import mindustry.world.TileGen;
+import mindustry.world.blocks.environment.Floor;
+
+import static mindustry.Vars.*;
 
 public class DepicilonPlanetGenerator extends PlanetGenerator {
     //alternate, less direct generation
     public static boolean indirectPaths = false;
     //random water patches
     public static boolean genLakes = false;
+    public Color EmissiveColor = Color.valueOf("fffaa0");
+
+    {
+        seed = 1145;
+    }
+
+    public Block[] blockArr = new Block[]{
+            md_environment.crystallization_oil_floor,
+            md_environment.brownSandFloor,
+            md_environment.magnetic_shale_stone
+    };
+
+    ObjectMap<Block, Block> dec = ObjectMap.of(
+            Blocks.sporeMoss, Blocks.sporeCluster,
+            Blocks.moss, Blocks.sporeCluster,
+            Blocks.taintedWater, Blocks.water,
+            Blocks.darksandTaintedWater, Blocks.darksandWater
+    );
 
     BaseGenerator basegen = new BaseGenerator();
     float heightYOffset = 42.7f;
@@ -26,15 +70,21 @@ public class DepicilonPlanetGenerator extends PlanetGenerator {
     static float[] count = {0,0};
 
     @Override
-    protected void generate(){
-        Object[] sectors = Planets.serpulo.sectors.items;
-        for(int i = 0; i < md_Planets.depicilon.sectors.size; i ++){
-            var sector = (Sector)sectors[i];
-
-            Vec3 g = sector.tile.v;
-
+    protected void genTile(Vec3 position, TileGen tile) {
+        float height = rawHeight(position);
+        if(height<0.48f){
+            tile.block = Blocks.air;
+        }else{
+            tile.block = md_environment.magnetic_shale_wall;
         }
 
+    }
+
+    @Override
+    protected void generate(){
+    }
+    public boolean isEmissive(){
+        return true;
     }
 
     @Override
@@ -49,7 +99,7 @@ public class DepicilonPlanetGenerator extends PlanetGenerator {
         }else if (height <0.42f){
             height -=0.2f;
         }
-        return height * 0.7f;
+        return height * 0.5f;
     }
 
     @Override
@@ -74,6 +124,17 @@ public class DepicilonPlanetGenerator extends PlanetGenerator {
         }
         out.set(c);
     }
+
+    @Override
+    public void getEmissiveColor(Vec3 position, Color out) {
+        float height = rawHeight(position);
+        if(height<0.4f){
+            out.set(EmissiveColor);
+            out.lerp(Color.clear,Math.max(0,(height-0.25f)*2.66F));
+        }
+
+    }
+
     // -1~~0~~1  ->  -90~~0~~90
     float getLatitude(Vec3 v){
         return (float) (Math.asin(v.y)/(Math.PI/2));
@@ -83,7 +144,8 @@ public class DepicilonPlanetGenerator extends PlanetGenerator {
     }
 
     float rawHeight(Vec3 position) {
-        return Simplex.noise3d(seed, 7, 0.5f, 1f / 3f, position.x * scl, position.y * scl + heightYOffset, position.z * scl) * heightScl;
+        float height = Simplex.noise3d(114, 7, 0.5f, 1f / 3f, position.x * scl, position.y * scl + heightYOffset, position.z * scl) * heightScl;
+        return height;
     }
 
 }

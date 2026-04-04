@@ -1,6 +1,7 @@
 package mDimension.content;
 
 import arc.graphics.Color;
+import mindustry.content.Items;
 import mindustry.type.Item;
 
 public class md_items {
@@ -9,32 +10,32 @@ public class md_items {
 
     public static void load(){
         bauxite = new Item("bauxite",Color.valueOf("ffebd0")){{
-            hardness = 1;
+            hardness = 0;
             cost = 0.5f;
             alwaysUnlocked = true;
         }};
         aluminium = new Item("aluminium",Color.valueOf("ffeded")){{
             healthScaling = 0.3f;
-            hardness = 2;
+            hardness = 1;
             cost = 0.4f;
             alwaysUnlocked = true;
         }};
         al_alloy = new Item("al-alloy",Color.valueOf("ededff")){{
             healthScaling = 0.5f;
-            hardness = 3;
+            hardness = 2;
             cost = 0.7f;
             alwaysUnlocked = true;
         }};
         ti_alloy = new Item("ti-alloy",Color.valueOf("d8d8ff")){{
             healthScaling = 0.8f;
-            hardness = 4;
+            hardness = 3;
             cost = 2f;
             alwaysUnlocked = true;
         }};
         polymer = new Item("polymer",Color.valueOf("FFE399")){{
             flammability = 0.6f;
             cost = 0.3f;
-            hardness = 1;
+            hardness = 0;
             alwaysUnlocked = true;
         }};
         carbon_fibre = new Item("carbon-fibre",Color.valueOf("303030")){{
@@ -51,7 +52,7 @@ public class md_items {
             explosiveness =2.73f;
             radioactivity = 3.25f;
             cost = 3.5f;
-            hardness = 4;
+            hardness = 2;
             alwaysUnlocked = true;
 
         }};
@@ -62,7 +63,7 @@ public class md_items {
             charge = 2.5f;
             explosiveness = 2f;
             cost = 3f;
-            hardness  = 1;
+            hardness  = 0;
             alwaysUnlocked = true;
         }};
         light_ceramic = new Item("light-ceramic",Color.valueOf("EFFF87")){{
@@ -72,7 +73,7 @@ public class md_items {
             charge = 0.8f;
             explosiveness = 0.8f;
             cost = 2.5f;
-            hardness  = 2;
+            hardness  = 1;
             alwaysUnlocked = true;
         }};
     }
