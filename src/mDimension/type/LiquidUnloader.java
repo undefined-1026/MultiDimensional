@@ -11,9 +11,12 @@ import arc.util.io.Reads;
 import arc.util.io.Writes;
 import mindustry.entities.units.BuildPlan;
 import mindustry.gen.Building;
+import mindustry.graphics.Layer;
 import mindustry.type.Liquid;
 import mindustry.world.Block;
+import mindustry.world.Tile;
 import mindustry.world.blocks.ItemSelection;
+import mindustry.world.blocks.defense.turrets.Turret;
 import mindustry.world.meta.BlockGroup;
 
 import static mindustry.Vars.content;
@@ -48,24 +51,33 @@ public class LiquidUnloader extends Block {
         centerRegion = Core.atlas.find(name+"-center");
         topRegion = Core.atlas.find(name+"-top");
         sideRegion = Core.atlas.find(name+"-side");
+        uiIcon = Core.atlas.find(name+"-ui");
     }
 
     @Override
     public void drawPlanConfig(BuildPlan plan, Eachable<BuildPlan> list){
         drawPlanConfigCenter(plan, plan.config, name+"-center", false);
+        Draw.rect(topRegion,plan.drawx(),plan.drawy(),plan.rotation*90f);
     }
 
     @Override
-    public void drawPlan(BuildPlan plan, Eachable<BuildPlan> list, boolean valid) {
-        super.drawPlan(plan, list, valid);
-        float  z= Draw.z();
-        Draw.z(z+0.01f);
-        Draw.color(Color.white);
-        Draw.rect(topRegion,plan.x,plan.y,plan.rotation*90f);
+    public TextureRegion getDisplayIcon(Tile tile) {
+        return super.getDisplayIcon(tile);
+    }
+
+    @Override
+    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list) {
+        super.drawPlanRegion(plan,list);
+        float z = Draw.z();
+        Draw.rect(sideRegion,plan.drawx(),plan.drawy(),(plan.rotation%2)*90);
         Draw.z(z);
-        Draw.reset();
 
     }
+
+    public TextureRegion getPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
+        return region;
+    }
+
 
     public class LiquidUnloaderBuild extends Building{
         public Liquid sortLiquid;
@@ -77,9 +89,10 @@ public class LiquidUnloader extends Block {
 
             Building back = back();
             if(sortLiquid != null&&back != null
-            &&back.block.hasLiquids && back.liquids.get(sortLiquid)>0.0001f && back.canUnload()
+            &&back.block.hasLiquids && back.liquids.get(sortLiquid)>0.01f && back.canUnload()
             && this.liquids.get(sortLiquid)<block.liquidCapacity-0.01f){
                 float minAmount = Math.min(block.liquidCapacity-this.liquids.get(sortLiquid),amount);
+                minAmount = Math.min(minAmount,back.liquids.get(sortLiquid));
                 back.liquids.remove(sortLiquid,minAmount);
                 this.handleLiquid(back,sortLiquid,minAmount);
             }
@@ -91,7 +104,7 @@ public class LiquidUnloader extends Block {
         }
 
         public void unloaderLiquid(){
-            if(this.front() == null)return;
+            if(this.front() == null || !this.front().block.hasLiquids || this.front().liquids == null)return;
             if(sortLiquid!=null){
                 if(this.liquids.get(sortLiquid)>0.01f)transferLiquid(this.front(),Math.min(this.liquids.get(sortLiquid),amount()),sortLiquid);
             }else if(liquids.current() !=null){

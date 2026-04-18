@@ -1,0 +1,29 @@
+package mDimension.type;
+
+import arc.func.Cons;
+import mindustry.gen.Building;
+import mindustry.world.blocks.production.GenericCrafter;
+
+public class TestBlock extends GenericCrafter {
+    public Cons<Building> draw = (b)->{};
+    public Cons<Building> update = (b)->{};
+
+
+    public TestBlock(String name){
+        super(name);
+    }
+
+    public class TestBlockBuild extends GenericCrafterBuild{
+        @Override
+        public void draw() {
+            super.draw();
+            draw.get(this);
+        }
+
+        @Override
+        public void updateTile() {
+            super.updateTile();
+            update.get(this);
+        }
+    }
+}

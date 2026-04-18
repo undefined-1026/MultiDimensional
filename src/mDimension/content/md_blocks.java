@@ -1,14 +1,21 @@
 package mDimension.content;
 
 import arc.Core;
+import arc.graphics.Blending;
 import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Fill;
+import arc.graphics.g2d.Lines;
+import arc.graphics.g2d.TextureRegion;
+import arc.graphics.gl.Shader;
+import arc.math.Angles;
 import arc.math.Interp;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.Seq;
 import arc.util.Time;
+import arc.util.Tmp;
+import mDimension.MDShaders;
 import mDimension.consumers.ConsumeBeam;
 import mDimension.consumers.MultiRecipeConsume;
 import mDimension.draw.DrawPiston;
@@ -19,9 +26,9 @@ import mDimension.entity.bullet.BallLightningBulletType;
 import mDimension.entity.bullet.EntityCrafterBulletType;
 import mDimension.entity.bullet.MultiPointLaserBullet;
 import mDimension.entity.pattern.ShootSwing;
+import mDimension.tool.Drawff;
 import mDimension.type.*;
 import mindustry.content.*;
-import mindustry.entities.Effect;
 import mindustry.entities.UnitSorts;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.MultiEffect;
@@ -31,11 +38,13 @@ import mindustry.entities.part.HaloPart;
 import mindustry.entities.part.RegionPart;
 import mindustry.entities.part.ShapePart;
 import mindustry.entities.pattern.*;
+import mindustry.gen.Building;
 import mindustry.gen.Bullet;
 import mindustry.gen.Sounds;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Pal;
+import mindustry.graphics.Shaders;
 import mindustry.type.Category;
 import mindustry.type.ItemStack;
 import mindustry.type.LiquidStack;
@@ -45,8 +54,6 @@ import mindustry.world.Block;
 import mindustry.world.blocks.defense.turrets.ContinuousTurret;
 import mindustry.world.blocks.defense.turrets.ItemTurret;
 import mindustry.world.blocks.distribution.Duct;
-import mindustry.world.blocks.distribution.DuctBridge;
-import mindustry.world.blocks.distribution.ItemBridge;
 import mindustry.world.blocks.distribution.StackConveyor;
 import mindustry.world.blocks.payloads.Constructor;
 import mindustry.world.blocks.production.*;
@@ -54,8 +61,8 @@ import mindustry.world.blocks.storage.StorageBlock;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
 
-import static arc.graphics.g2d.Draw.alpha;
 import static arc.graphics.g2d.Draw.color;
+import static arc.graphics.g2d.Draw.rect;
 import static arc.graphics.g2d.Lines.stroke;
 import static arc.math.Angles.randLenVectors;
 import static mindustry.type.ItemStack.with;
@@ -64,15 +71,15 @@ public class md_blocks {
     public static final String modname = "mdimension-";
     //region defined
     public static Block
-            aluminium_electrolysis_cell, al_alloy_smelting,ultraviolet_laser,ngm_launch_pad,
-            ti_alloy_smelting, helium_factory, infrared_laser, test2,diagonal_beam_merging_prism,
-            water_pyrolyzer,carbon_fibre_binder,heavy_pulverizer,
+            aluminium_electrolysis_cell, al_alloy_smelting,infrared_laser,ultraviolet_laser,nihility_exciter,ngm_launch_pad,
+            ti_alloy_smelting, helium_factory, test2,diagonal_beam_merging_prism,
+            water_pyrolyzer,carbon_fibre_binder,heavy_pulverizer,polymer_compressor,phase_adder,
     //distribution
     beam_merging_prism,
-            multiway_unloader, polymer_compressor, light_duct_bridge,
+            multiway_unloader, light_duct_bridge,
             light_duct,armored_light_duct,stack_rail_conveyor,
     //liquid
-    liquid_unloader,
+    liquid_unloader,liquid_conduit_bridge,
     //drill
     deep_water_extractor,beam_bore,small_impact_drill,
     //ammo
@@ -105,14 +112,23 @@ public class md_blocks {
                             Items.silicon, 80
                     ));
                     alwaysUnlocked = true;
-                    craftEffect = Fx.pulverizeMedium;
+                    craftEffect=new  MultiEffect(
+                            md_Fx.craftEffectLight(40,2.5f,4f,Color.valueOf("D1F8FF"),6,1f),
+                            md_Fx.craftEffectLight(25,1f,3f,Color.valueOf("D1F8FF"),6,5f)
+                    );
                     outputItem = new ItemStack(md_items.al_alloy, 3);
                     consumeItems(ItemStack.with(
                             md_items.aluminium, 5,
                             Items.silicon, 2
                     ));
                     consumePower(4f);
-                    drawer = new DrawMulti(new DrawDefault(), new DrawFlame(new Color(0xb0b0ffff)));
+                    drawer = new DrawMulti(new DrawDefault(), new DrawFlame(Color.valueOf("D1E4FF")){{
+                        flameRadiusScl = 8f;
+                        flameRadiusInMag = 0.7f;
+                    }},
+                            new DrawGlowRegion(){{
+                                color = md_items.al_alloy.color;
+                            }});
                     craftTime = 90f;
                     hasItems = true;
                     hasPower = true;
@@ -138,31 +154,28 @@ public class md_blocks {
                     craftTime = 80f;
                     itemCapacity = 30;
                     consumeItems(ItemStack.with(md_items.aluminium, 4, Items.titanium, 12));
-                    consumeLiquid(md_liquids.helium, 0.0131f*4);
+                    consumeLiquid(md_liquids.helium, 1.45f/60f);
                     outputItem = new ItemStack(md_items.ti_alloy, 4);
                     hasItems = true;
                     hasPower = true;
                     craftEffect = Fx.pulverizeMedium;
-                    DrawCrucibleFlame flame = new DrawCrucibleFlame();
-                    flame.flameColor = new Color(0xf1e8ffff);
-                    flame.midColor = new Color(0xf5edffff);
-                    flame.flameRadiusMag = 2f;
-                    flame.flameRadiusScl = 40f;
-                    flame.flameRad = 5f;
-                    flame.particleLife = 110f;
-                    flame.particleRad = 12f;
-                    flame.particleSize = 5;
-                    flame.alpha = 0.7f;
                     consumePower(4f);
                     drawer = new DrawMulti(
                             new DrawRegion("-bottom"),
                             new DrawLiquidTile(md_liquids.helium),
-                            flame,
+                            new DrawCrucibleFlame(){{
+                                flameRad = 5f;
+                                particleLife = 110f;
+                                particleRad = 12f;
+                                particleSize = 5;
+                            }},
                             new DrawRegion(),
-                            new DrawHeatInput(),
-                            new DrawRegion("-top")
+                            new DrawRegion("-top"),
+                            new DrawGlowRegion(){{
+                                color = Color.valueOf("FFF4DB");
+                                alpha = 0.7f;
+                            }}
                     );
-                    uiIcon = Core.atlas.find(this.name + "-ui");
 
                 }};
             //endregion
@@ -218,23 +231,16 @@ public class md_blocks {
                     consumeItem(md_items.bauxite, 4);
                     outputItem = new ItemStack(md_items.aluminium, 3);
                     consumePower(2f);
-                    craftEffect = new Effect(90f, e -> {
-                        color(new Color(0xfff2e0ff));
-                        alpha(e.fout());
-
-                        randLenVectors(e.id, 5, 3f + e.finpow() * 7f, (x, y) -> {
-                            Fill.poly(e.x + x, e.y + y, 4, 0.6f + e.fin() * 5f, 45);
-                        });
-                    });
+                    craftEffect = md_Fx.craftEffectLight(40,2.5f,3,Color.valueOf("FFAC99"),5,1f);
                     craftTime = 120f;
 
                     drawer = new DrawMulti(
 
                             new DrawRegion("-bottom"),
                             new DrawRegion(),
-                            new DrawFlame(new Color(0xe8e8e8ff)) {{
-                                flameRadius = 1.5f;
-                                flameRadiusIn = 1f;
+                            new DrawFlame(Color.valueOf("FFD3BD")) {{
+                                flameRadius = 2.5f;
+                                flameRadiusIn = 1.2f;
                                 flameRadiusMag = 0.5f;
                                 flameRadiusInMag = 0.33f;
                             }}
@@ -287,9 +293,9 @@ public class md_blocks {
                 ));
                 squareSprite = false;
                 size = 3;
-                consumeLiquids(LiquidStack.with(Liquids.oil, 25f / 60f, Liquids.hydrogen, 2f / 60f));
+                consumeLiquids(LiquidStack.with(Liquids.oil, 15 / 60f, Liquids.hydrogen, 4f / 60f));
                 consumePower(4f);
-                outputItem = new ItemStack(md_items.polymer, 3);
+                outputItem = new ItemStack(md_items.polymer, 1);
                 craftTime = 60f;
                 craftEffect = md_Fx.craftEffect(60f,4f,md_items.polymer.color,6,new float[]{4,4,-4,4,-4,-4,4,-4});
                 fullOverride = this.name+"-full";
@@ -313,11 +319,11 @@ public class md_blocks {
                 hasItems = true;
                 hasLiquids = true;
                 itemCapacity = 500;
-                liquidCapacity = 4500;
+                liquidCapacity = 9000;
                 health = 8000;
                 squareSprite = false;
-                craftTime = 12*60f;
-                baseHoverTime = 68*60f;
+                craftTime = 25*60f;
+                baseHoverTime = 55*60f;
                 launchTime = 6.6f*60f;
                 landTime = 3.4f*60f;
                 launchEffect = md_Fx.loadLaunch(launchTime, this.name + "-pod", 17f * 8f, 0f, 1f, 1f);
@@ -331,11 +337,11 @@ public class md_blocks {
                         md_items.polymer, 200
                 ));
                 consumeLiquids(LiquidStack.with(Liquids.hydrogen, 100f / 60f, Liquids.ozone, 1f));
-                outputLiquid = new LiquidStack(md_liquids.dimension_fluid, 2250);
+                outputLiquid = new LiquidStack(md_liquids.dimension_fluid, 4500);
                 drawer = new DrawMulti(new DrawLiquidTile(md_liquids.dimension_fluid, 5f), new DrawRegion());
             }};
             //endregion
-            //region infrared_laser 红外激光发生器
+            //region infrared_laser 激光发生器
             infrared_laser = new LaserCrafter("infrared-laser") {{
                 requirements(Category.crafting, with());
                 craftPos = new Vec2[]{
@@ -355,9 +361,7 @@ public class md_blocks {
                 drawArrow = true;
                 drawer = new DrawMulti(new DrawRegion(),new DrawRotation("-top",true,false));
             }};
-            //endregion
-            //region ultraviolet_light 紫外光发生器
-                ultraviolet_laser = new LaserCrafter("ultraviolet-laser"){{
+            ultraviolet_laser = new LaserCrafter("ultraviolet-laser"){{
                 requirements(Category.crafting, with());
                     craftPos = new Vec2[]{
                             new Vec2(4,-4),
@@ -375,6 +379,29 @@ public class md_blocks {
                 rotateDraw = false;
                 drawArrow = true;
                 drawer = new DrawMulti(new DrawRegion(),new DrawRotation("-top",true,false));
+            }};
+            nihility_exciter = new LaserCrafter("nihility-exciter"){{
+                requirements(Category.crafting, with());
+                craftPos = new Vec2[]{
+                        new Vec2(-4,4),
+                        new Vec2(4,4),
+                        new Vec2(-4,-4),
+                        new Vec2(4,-4)
+                };
+                craftRotation = new Vec2[]{
+                        new Vec2(0,1),
+                        new Vec2(0,1),
+                        new Vec2(0,-1),
+                        new Vec2(0,-1)
+                };
+                beam = md_beams.nihility_light;
+                beamPower = 40f;
+                size = 2;
+                rotateDraw = false;
+                drawArrow = true;
+                consumePower(5f);
+                consumeLiquid(md_liquids.dimension_fluid,6/60f);
+
             }};
             //endregion
         carbon_fibre_binder = new GenericCrafter("carbon-fibre-binder"){{
@@ -537,6 +564,72 @@ public class md_blocks {
                     }}
             );
         }};
+        phase_adder = new GenericCrafter("phase-adder"){{
+            requirements(Category.crafting,with(Items.silicon,80,md_items.polymer,50,md_items.al_alloy,70,md_items.ti_alloy,40));
+            craftTime = 180f;
+            size = 2;
+            itemCapacity = 20;
+            consumeItems(with(md_items.light_ceramic,4));
+            consumeLiquid(md_liquids.dimension_fluid,10/60f);
+            consumePower(300/60f);
+            outputItem = new ItemStack(md_items.polymorphic_crystal,2);
+
+            craftEffect = new MultiEffect(
+                    md_Fx.craftEffectLight(70f,4.5f,5f,Color.valueOf("FFEBA3"),7,1f),
+                    md_Fx.craftEffectLight(55f,2f,7f,Color.valueOf("FFEBA3"),4,6f)
+            );
+
+            drawer = new DrawMulti(
+                    new DrawRegion("-bottom"),
+                    new DrawLiquidTile(md_liquids.dimension_fluid,5/4f),
+                    new DrawRegion(),
+                    new DrawRegion("-mid"),
+                    new DrawCrucibleFlame(){{
+                        flameColor = Color.valueOf("F5D37C");
+                        midColor = Color.valueOf("F2AD85");
+                        alpha = 0.38f;
+                        particles = 20;
+                        particleSize = 2.8f;
+                    }
+                        @Override
+                        public void draw(Building build){
+
+                            if(build.warmup() > 0f && flameColor.a > 0.001f){
+                                Lines.stroke(circleStroke * build.warmup());
+
+                                float si = Mathf.absin(flameRadiusScl, flameRadiusMag);
+                                float a = alpha * build.warmup();
+                                Draw.blend(Blending.additive);
+
+                                Draw.color(midColor, a);
+                                Fill.poly(build.x + x, build.y + y, 4,flameRad + si);
+
+                                Draw.color(flameColor, a);
+                                Lines.poly(build.x + x, build.y + y, 4,(flameRad + circleSpace + si) * build.warmup());
+
+                                float base = (Time.time / particleLife);
+                                rand.setSeed(build.id);
+                                for(int i = 0; i < particles; i++){
+                                    float fin = (rand.random(1f) + base) % 1f, fout = 1f - fin;
+                                    float angle = rand.random(360f) + (Time.time / rotateScl) % 360f;
+                                    float len = particleRad * particleInterp.apply(fout);
+                                    Draw.alpha(a * (1f - Mathf.curve(fin, 1f - fadeMargin)));
+                                    Fill.poly(
+                                            build.x + Angles.trnsx(angle, len) + x,
+                                            build.y + Angles.trnsy(angle, len) + y,
+                                            4,
+                                            particleSize * fin * build.warmup()
+                                    );
+                                }
+
+                                Draw.blend();
+                                Draw.reset();
+                            }
+                        }
+                    },
+                    new DrawRegion("-top")
+            );
+        }};
         //endregion
         // region drill
         deep_water_extractor = new SolidPump("deep-water-extractor"){{
@@ -612,8 +705,8 @@ public class md_blocks {
             light_duct_bridge = new RadiusItemBridge("al-alloy-duct-bridge") {{
                 requirements(Category.distribution, with(Items.silicon, 10, Items.titanium, 10, md_items.al_alloy, 10));
                 arrowSpacing = 6f;
-                bridgeWidth = 7.2f;
-                arrowTimeScl = 8f;
+                bridgeWidth = 8;
+                arrowTimeScl = 15;
                 health = 200;
                 armor = 2;
                 range = 6;
@@ -679,6 +772,22 @@ public class md_blocks {
             speed = 2;
             regionRotated1 = 1;
             size = 1;
+            conductivePower = true;
+            fullOverride = this.name + "-private";
+        }};
+        liquid_conduit_bridge = new RadiusLiquidBridge("liquid-conduit-bridge"){{
+            requirements(Category.liquid, with(Items.silicon, 10, Items.titanium, 10, md_items.polymer, 10));
+            arrowSpacing = 6f;
+            bridgeWidth = 8;
+            arrowTimeScl = 15;
+            health = 200;
+            armor = 2;
+            range = 6;
+            pulse = true;
+            liquidCapacity = 200f;
+            buildCostMultiplier = 3f;
+            researchCostMultiplier = 0.3f;
+            squareSprite = false;
         }};
         //endregion
         //region turret
@@ -811,14 +920,15 @@ public class md_blocks {
                             );
                             despawnHit = true;
                             fragBullets = 3;
-                            fragBullet = new LaserBulletType() {{
-                                colors = new Color[]{new Color(0xe2e2fff0), md_items.al_alloy.color, Color.white};
+                            fragOffsetMax =fragOffsetMin = 0;
+                            fragBullet = new ShrapnelBulletType() {{
+                                toColor = Color.valueOf("CFE9FF");
                                 length = 30f;
+                                serrationSpaceOffset = 70;
+                                serrations = 4;
+                                serrationLenScl = 10f;
                                 width = 12f;
-                                sideWidth = 3.5f;
-                                sideLength = 8f;
-                                sideAngle = 60f;
-                                damage = 15;
+                                damage = 20;
                                 pierceArmor = true;
                                 lifetime = 40f;
                             }};
@@ -1009,13 +1119,13 @@ public class md_blocks {
                                 }
                             };
 
-                            shockEffect = new MultiEffect(md_Fx.chainLightningBig,md_Fx.waveHitColor(12,9f,13f,1.5f,0.85f));
+                            shockEffect = new MultiEffect(md_Fx.chainLightningPro,md_Fx.waveHitColor(12,9f,13f,1.5f,0.85f));
                             shockDamage = 120f;
-                            shockRange = 160f;
-                            shockAmount = 20;
+                            shockRange = 160;
+                            shockAmount = 6;
                             shockLimit = 3;
 
-                            shockCooldown = 12f;
+                            shockCooldown = 4.8f;
                             shockStatus = md_StatusEffects.dimension_slip;
                             statusDuration = 2*60f;
 
@@ -1024,12 +1134,6 @@ public class md_blocks {
 
                             intervalBullets = 2;
                             bulletInterval = 6f;
-                            intervalBullet = new LightningBulletType(){{
-                                damage = 15f;
-                                lightningLength = 9;
-                                lightningLengthRand = 4;
-                                lightningColor = md_items.polymorphic_crystal.color;
-                            }};
                         }}
                 );
                 range = 8f*38;
@@ -1168,7 +1272,7 @@ public class md_blocks {
 
                                             shockCooldown = 12f;
                                             shockStatus = StatusEffects.shocked;
-                                            shockEffect = new MultiEffect(md_Fx.starExplosionSmall,Fx.chainLightning);
+                                            shockEffect = new MultiEffect(md_Fx.starExplosionSmall,md_Fx.chainLightningPro(30f,2.8f,15f,8f));
                                             lightning = 5;
                                             shockRange = 80f;
                                             shockDamage = damage;
@@ -1269,7 +1373,7 @@ public class md_blocks {
                 requirements(Category.turret,with());
                 size = 4;
                 shootType = new MultiPointLaserBullet(){{
-                    damage = 2500f/12f/3f;
+                    damage = 2500f/12f;
                     buildingDamageMultiplier = 0.3f;
                     hitColor = Color.valueOf("fda981");
                     amount = 3;
@@ -1681,6 +1785,22 @@ public class md_blocks {
 
         }};
         //endregion
+
+        Block test = new TestBlock("testBlock"){{
+            requirements(Category.crafting,with());
+            TextureRegion text = Core.atlas.find("cat");
+            draw = (b)->{
+                Draw.draw(Draw.z(),()->{
+                    MDShaders.fisheye.region = text;
+                    MDShaders.fisheye.alpha = 0.5f;
+                    MDShaders.fisheye.progress = 0.5f;
+                    MDShaders.fisheye.time = Time.time;
+                    Draw.shader(MDShaders.fisheye);
+                    Draw.rect(text,b.x,b.y+20);
+                    Draw.shader();
+                });
+            };
+        }};
     }
     public static void loadAmmo(){
         heavy_ammo = new AmmoBlock("heavy-ammo"){{

@@ -6,7 +6,7 @@ import mindustry.type.Item;
 
 public class md_items {
     public static Item
-            bauxite,aluminium,al_alloy,ti_alloy,polymer,carbon_fibre,polymorphic_crystal,plasma,light_ceramic;
+            bauxite,aluminium,al_alloy,ti_alloy,polymer,carbon_fibre,polymorphic_crystal,plasma,light_ceramic,nihility_alloy;
 
     public static void load(){
         bauxite = new Item("bauxite",Color.valueOf("ffebd0")){{
@@ -26,7 +26,7 @@ public class md_items {
             cost = 0.7f;
             alwaysUnlocked = true;
         }};
-        ti_alloy = new Item("ti-alloy",Color.valueOf("d8d8ff")){{
+        ti_alloy = new Item("ti-alloy",Color.valueOf("9373FF")){{
             healthScaling = 0.8f;
             hardness = 3;
             cost = 2f;
@@ -45,9 +45,9 @@ public class md_items {
             alwaysUnlocked = true;
         }};
         polymorphic_crystal = new Item("polymorphic-crystal",Color.valueOf("F8D09E")){{
-            frames = 6;
+            frames = 10;
             frameTime = 20;
-            transitionFrames = 64;
+            transitionFrames = 15;
             charge = 1.5f;
             explosiveness =2.73f;
             radioactivity = 3.25f;
@@ -58,8 +58,8 @@ public class md_items {
         }};
         plasma = new Item("plasma",Color.valueOf("ADB0FF")){{
             frames = 2;
-            frameTime = 8;
-            transitionFrames = 16;
+            frameTime = 2.5f;
+            transitionFrames = 18;
             charge = 2.5f;
             explosiveness = 2f;
             cost = 3f;
@@ -74,6 +74,14 @@ public class md_items {
             explosiveness = 0.8f;
             cost = 2.5f;
             hardness  = 1;
+            alwaysUnlocked = true;
+        }};
+        nihility_alloy = new Item("nihility-alloy",Color.valueOf("FCE08C")){{
+            healthScaling = 0.7f;
+            charge = 1.5f;
+            explosiveness = 0.5f;
+            cost = 3f;
+            hardness  = 3;
             alwaysUnlocked = true;
         }};
     }

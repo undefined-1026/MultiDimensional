@@ -220,6 +220,11 @@ public class MultiPointLaserBullet extends BulletType {
         }
     }
 
+    @Override
+    public float damageMultiplier(Bullet b) {
+        return super.damageMultiplier(b) / amount;
+    }
+
     // 保留你的动态检测半径计算
     public float traceRad(Bullet b) {
         return Mathf.len(b.aimX - b.x, b.aimY - b.y) * traceRadMulti + baseTraceRad;

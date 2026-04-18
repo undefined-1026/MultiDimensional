@@ -18,6 +18,7 @@ import mDimension.content.*;
 
 public class MDimensionMod extends Mod {
     public MDimensionMod() {
+
         Events.on(EventType.ClientLoadEvent.class, e -> {
             Time.runTask(20f, () -> {
                 BaseDialog welcome = new BaseDialog("Welcome to play Multidimensional");
@@ -31,16 +32,20 @@ public class MDimensionMod extends Mod {
 
 
     }
-//    @Override
-//    public void init(){
-//        setupExtendedRenderer();
-//        // 监听客户端加载完成事件，确保在客户端加载完成后也能正确配置
-//        Events.on(EventType.ClientLoadEvent.class, e -> {
-//            if (Vars.renderer instanceof ExtendedRenderer) {
-//                Log.info("Configuring ExtendedRenderer ranges on client load...");
-//            }
-//        });
-//    }
+
+    @Override
+    public void init() {
+        MDShaders.init();
+
+    }
+
+    public void replaceRegion(String from,String to,boolean abbModName){
+        Core.atlas.addRegion(from,Core.atlas.find(abbModName?"mdimension-"+to:to));
+    }
+    public void replaceRegion(String from,String to){
+        replaceRegion(from,to,true);
+    }
+
     @Override
     public void loadContent(){
 

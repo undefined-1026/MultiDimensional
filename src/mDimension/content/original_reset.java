@@ -1,7 +1,9 @@
 package mDimension.content;
+import arc.Core;
 import arc.graphics.Color;
 import arc.struct.Seq;
 import mDimension.entity.ability.SprintAbility;
+import mDimension.type.md_Fx;
 import mDimension.type.weapons.OverdriveWeapon;
 import mindustry.content.*;
 import mindustry.entities.bullet.LiquidBulletType;
@@ -10,10 +12,12 @@ import mindustry.entities.bullet.PointLaserBulletType;
 import mindustry.type.*;
 import mindustry.world.blocks.defense.turrets.ContinuousTurret;
 import mindustry.world.blocks.defense.turrets.LiquidTurret;
+import mindustry.world.blocks.production.GenericCrafter;
 
 public class original_reset {
     public static void load() {
         LiquidTurret tsunami = (LiquidTurret) Blocks.tsunami;
+        UnitTypes.zenith.region = Core.atlas.find("mdimension-override1");
         tsunami.ammoTypes.put(
                 md_liquids.dimension_fluid,new LiquidBulletType(md_liquids.dimension_fluid){{
 
@@ -62,6 +66,5 @@ public class original_reset {
 
         }});
         emanate.weapons = weaponSeq;
-
     }
 }

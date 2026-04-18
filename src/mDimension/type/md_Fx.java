@@ -38,6 +38,8 @@ import static mindustry.Vars.tilesize;
 public class md_Fx {
     public static final Rand rand = new Rand();
     public static final Vec2 v = new Vec2();
+    public static final Vec2 v1 = new Vec2();
+    public static final Vec2 v2 = new Vec2();
 
     public static final Effect
             dimension_vapor = new Effect(120f, e -> {
@@ -242,6 +244,59 @@ public class md_Fx {
         Lines.endLine();
     }).followParent(false).rotWithParent(false),
 
+    chainLightningPro = new Effect(20f,300,e->{
+        if (!(e.data instanceof Position p)) return;
+        float tx = p.getX(), ty = p.getY(), dst = Mathf.dst(e.x, e.y, tx, ty);
+        v.set(p).sub(e.x, e.y).nor();
+        rand.setSeed(e.id);
+        float lenScl = 1f;
+        float widScl = 1f;
+        boolean nodeSpatter = false;
+        if(rand.random(1f)<0.35f){
+            lenScl = 3f;
+            widScl = 2.5f;
+            nodeSpatter = true;
+        }
+        float range = 13 * lenScl;
+        float Mal = 20f * widScl;
+        float stroke= 2.6f;
+        int links = Mathf.ceil(dst / range);
+        float spacing = dst / links;
+        float lx = e.x,ly = e.y;
+
+        v1.set(v).rotate(90);
+        v2.set(e.x,e.y);
+        v.scl(spacing);
+        Lines.stroke(stroke * e.fout());
+        Fill.circle(e.x,e.y,stroke * e.fout());
+        Fill.circle(tx,ty,stroke * e.fout());
+
+        color(e.color,Color.white,e.fout()*0.5f);
+        for(int i=0;i<links;i++){
+            float X = ((float) i /links);
+            float Mall = (-4*X*X+4*X)*Mal;
+            float Yscl = rand.random(Mall)-Mall/2;
+            v2.add(v);
+            float cx = v2.x + Yscl*v1.x;
+            float cy = v2.y + Yscl*v1.y;
+            Lines.line(lx,ly,cx,cy,false);
+            if(nodeSpatter && rand.random(1f)<0.3f){
+                Fill.circle(cx, cy, stroke*0.8f* e.fout());
+                e.scaled(20f,ee->{
+                    Lines.stroke(stroke*0.5f*ee.foutpowdown());
+                    randLenVectors((long) (ee.id+cx+cy),8,2.5f+(stroke*4f)*ee.fin(),(x, y)->{
+                        Lines.lineAngle(cx+x,cy+y,Mathf.angle(x,y),ee.fslope()*stroke*1.3f);
+                    });
+                    Lines.circle(cx,cy,ee.finpow() * stroke * 2.5f+2f);
+                    Lines.stroke(stroke* e.fout());
+                });
+            }else {
+                Fill.circle(cx, cy, stroke/2 * e.fout());
+            }
+            lx = cx;ly =cy;
+        }
+        Lines.line(lx,ly,tx,ty,false);
+    }),
     dawnCharge = new Effect(55f, e -> {
         mixcol(Color.valueOf("F8D09E"), Color.white, e.fin());
         Lines.stroke(e.fslope() * 1.5f);
@@ -586,6 +641,22 @@ public class md_Fx {
         });
     }
 
+    public static Effect craftEffectLight(float life,float rad, float size, Color color, int amount,float eccentricity) {
+        return new Effect(life, e -> {
+            color(color);
+            alpha(0.9f);
+
+            rand.setSeed(e.id);
+            v1.set(eccentricity,0).rotate(rand.random(360));
+            for(int i=0;i<amount;i++) {
+                v.trns(rand.random(360f), rand.random(2.5f + e.fin() * size));
+                v.add(v1);
+                Fill.poly(e.x + v.x, e.y + v.y, 4, e.foutpowdown() * rad);
+            }
+            Draw.reset();
+        });
+    }
+
     public static Effect brokenWave(float life, Color color, float rad, float startRad, float stroke, int paragraph, float spread, float fractionScl) {
         return new Effect(life, e -> {
             color(color);
@@ -654,7 +725,7 @@ public class md_Fx {
         });
     }
 
-    public static Effect hitBulletColor(float circleRad, int lines, float linesRad) {
+    public static Effect hitBulletColor(float circleRad, int lines, float linesRad){
         return new Effect(14, e -> {
             color(Color.white, e.color, e.fin());
 
@@ -673,6 +744,62 @@ public class md_Fx {
             Drawf.light(e.x, e.y, 20f, e.color, 0.6f * e.fout());
         });
     }
+
+    public static Effect chainLightningPro(float life,float stroke,float width,float space){
+        return new Effect(20f,300,e->{
+            if (!(e.data instanceof Position p)) return;
+            float tx = p.getX(), ty = p.getY(), dst = Mathf.dst(e.x, e.y, tx, ty);
+            v.set(p).sub(e.x, e.y).nor();
+            rand.setSeed(e.id);
+            float lenScl = 1f;
+            float widScl = 1f;
+            boolean nodeSpatter = false;
+            if(rand.random(1f)<0.35f){
+                lenScl = 3f;
+                widScl = 2.5f;
+                nodeSpatter = true;
+            }
+            float range = space * lenScl;
+            float Mal = width * widScl;
+            int links = Mathf.ceil(dst / range);
+            float spacing = dst / links;
+            float lx = e.x,ly = e.y;
+
+            v1.set(v).rotate(90);
+            v2.set(e.x,e.y);
+            v.scl(spacing);
+            Lines.stroke(stroke * e.fout());
+            Fill.circle(e.x,e.y,stroke * e.fout());
+            Fill.circle(tx,ty,stroke * e.fout());
+
+            color(e.color,Color.white,e.fout()*0.5f);
+            for(int i=0;i<links;i++){
+                float X = ((float) i /links);
+                float Mall = (-4*X*X+4*X)*Mal;
+                float Yscl = rand.random(Mall)-Mall/2;
+                v2.add(v);
+                float cx = v2.x + Yscl*v1.x;
+                float cy = v2.y + Yscl*v1.y;
+                Lines.line(lx,ly,cx,cy,false);
+                if(nodeSpatter && rand.random(1f)<0.3f){
+                    Fill.circle(cx, cy, stroke*0.8f* e.fout());
+                    e.scaled(20f,ee->{
+                        Lines.stroke(stroke*0.5f*ee.foutpowdown());
+                        randLenVectors((long) (ee.id+cx+cy),8,2.5f+(stroke*4f)*ee.fin(),(x, y)->{
+                            Lines.lineAngle(cx+x,cy+y,Mathf.angle(x,y),ee.fslope()*stroke*1.3f);
+                        });
+                        Lines.circle(cx,cy,ee.finpow() * stroke * 2.5f+2f);
+                        Lines.stroke(stroke* e.fout());
+                    });
+                }else {
+                    Fill.circle(cx, cy, stroke/2 * e.fout());
+                }
+                lx = cx;ly =cy;
+            }
+            Lines.line(lx,ly,tx,ty,false);
+        });
+    }
+
 
 
 }

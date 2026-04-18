@@ -1,42 +1,15 @@
 package mDimension.plante;
 
 import arc.graphics.Color;
-import arc.math.Angles;
-import arc.math.Interp;
-import arc.math.Mathf;
-import arc.math.Rand;
-import arc.math.geom.Geometry;
-import arc.math.geom.Point2;
-import arc.math.geom.Vec2;
 import arc.math.geom.Vec3;
 import arc.struct.*;
-import arc.util.Structs;
-import arc.util.Tmp;
-import arc.util.noise.Ridged;
 import arc.util.noise.Simplex;
-import mDimension.content.md_Planets;
 import mDimension.content.md_environment;
-import mDimension.content.md_items;
-import mindustry.ai.Astar;
-import mindustry.ai.BaseRegistry;
 import mindustry.content.Blocks;
-import mindustry.content.Items;
-import mindustry.content.Liquids;
-import mindustry.content.Planets;
-import mindustry.game.Schematics;
-import mindustry.game.Team;
-import mindustry.game.Waves;
 import mindustry.maps.generators.BaseGenerator;
-import mindustry.maps.generators.BlankPlanetGenerator;
 import mindustry.maps.generators.PlanetGenerator;
-import mindustry.maps.planet.SerpuloPlanetGenerator;
-import mindustry.type.Sector;
 import mindustry.world.Block;
-import mindustry.world.Tile;
 import mindustry.world.TileGen;
-import mindustry.world.blocks.environment.Floor;
-
-import static mindustry.Vars.*;
 
 public class DepicilonPlanetGenerator extends PlanetGenerator {
     //alternate, less direct generation

@@ -16,6 +16,7 @@ import mDimension.type.md_BeamDeflector;
 import mDimension.type.md_LaserData;
 import mindustry.Vars;
 import mindustry.content.Blocks;
+import mindustry.content.Items;
 import mindustry.core.World;
 import mindustry.entities.EntityGroup;
 import mindustry.gen.Building;
@@ -111,6 +112,12 @@ public class LaserEntity implements Entityc, Drawc {
                                     (length-i)*(rotation.len()/cacheRotat.len())+i
                                     ,0);
                             rotation.set(cacheRotat);
+                            Items.lead.description=""+(length-i);
+                            if(length-i == 0){
+                                cx+=rotation.x*5;
+                                cy+=rotation.y*5;
+                                break;
+                            }
                         }
                     }
                     continue;

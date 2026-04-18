@@ -17,6 +17,7 @@ import mindustry.entities.units.BuildPlan;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
+import mindustry.type.Item;
 import mindustry.world.*;
 import mindustry.world.blocks.distribution.ItemBridge;
 import mindustry.world.meta.Stat;
@@ -39,7 +40,7 @@ public class RadiusItemBridge extends ItemBridge {
     public void setStats() {
         super.setStats();
         stats.add(Stat.range,range);
-        stats.add(Stat.maxConsecutive,maxLinks);
+        stats.add(Stat.powerConnections,maxLinks);
     }
 
     public RadiusItemBridge(String name){
@@ -144,16 +145,21 @@ public class RadiusItemBridge extends ItemBridge {
         public int cacheLinks = 0;
 
         @Override
+        public boolean acceptItem(Building source, Item item) {
+            return hasItems && team == source.team && items.total() < itemCapacity && checkAccept(source, world.tile(link));
+        }
+
+
+
+        @Override
         protected boolean checkAccept(Building source, Tile link){
+            if(source instanceof ItemBridgeBuild bridge){
+                if(tile == world.tile(bridge.link))return true;
+            }
             int[] rels = md_Edge.isInDiagonal(this,link);
             if(rels[0]>=0){
-                Items.lead.description="\ncheckAccept;";
-                for(int i:rels) {
-                    Items.lead.description += "{" + i + "}";
-                }
                 var facing = Edges.getFacingEdge(source, this);
                 int rel = facing == null ? -1 : relativeTo(facing);
-                Items.lead.description += "source:"+rel;
                 return rel == rels[0] || rel == rels[1];
             }
             return super.checkAccept(source,link);
@@ -161,21 +167,23 @@ public class RadiusItemBridge extends ItemBridge {
 
         @Override
         public void updateTile() {
-            Building other = world.build(link);
-            if(other instanceof RadiusItemBridgeBuild bridge){
-                for(int i=0;i<bridge.incoming.items.length;i++){
-                    if(i>maxLinks-1 && Point2.pack(tileX(),tileY()) == bridge.incoming.items[i]){
-                        this.link = -1;
-                    }
-                }
-            }
             super.updateTile();
         }
 
         @Override
         public void updateTransport(Building other) {
-
-            super.updateTransport(other);
+            transportCounter += edelta();
+            while(transportCounter >= transportTime){
+                Item item = items.take();
+                if(item != null && other.acceptItem(this,item)){
+                    other.handleItem(this, item);
+                    moved = true;
+                }else if(item != null){
+                    items.add(item, 1);
+                    items.undoFlow(item);
+                }
+                transportCounter -= transportTime;
+            }
         }
 
         @Override
@@ -308,7 +316,7 @@ public class RadiusItemBridge extends ItemBridge {
             Lines.square(ox, oy, 2f, 45f);
             Draw.mixcol(color);
             Draw.color();
-            Draw.rect(arrowRegion, x, y, Mathf.angle(tx-x,ty-y));
+            Draw.rect("bridge-arrow", x, y, Mathf.angle(tx-x,ty-y) + (linked?180:0));
             Draw.mixcol();
         }
 

@@ -1,27 +1,20 @@
 package mDimension.meta;
 
 import arc.Core;
-import arc.func.Floatp;
 import arc.graphics.Color;
 import arc.graphics.g2d.TextureRegion;
 import arc.scene.ui.Image;
 import arc.scene.ui.layout.Stack;
 import arc.scene.ui.layout.Table;
-import arc.scene.ui.layout.WidgetGroup;
 import arc.util.Nullable;
 import arc.util.Scaling;
 import arc.util.Strings;
 import mDimension.type.Beam;
-import mindustry.core.UI;
-import mindustry.ctype.UnlockableContent;
-import mindustry.type.ItemStack;
 import mindustry.type.Liquid;
 import mindustry.ui.Styles;
 import mindustry.world.meta.StatUnit;
-import mindustry.world.meta.StatValue;
 import mindustry.world.meta.StatValues;
 
-import static mindustry.Vars.content;
 import static mindustry.Vars.iconMed;
 
 public class md_StatValues extends StatValues {
@@ -50,7 +43,7 @@ public class md_StatValues extends StatValues {
                                 Core.bundle.format("stat.laserpower", power)
                         ).pad(10f).row();
                         o.add(
-                                Core.bundle.format("stat.wavelength", content.wavelengthLeve)
+                                Core.bundle.format("stat.wavelength", content.energyLevel)
                         ).pad(10f);
                     }else{
                         o.add(

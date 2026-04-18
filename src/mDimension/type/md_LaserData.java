@@ -8,13 +8,13 @@ public class md_LaserData {
     public String beam = "";
     public md_LaserData(Beam l){
         this.length = l.lenght;
-        this.wavelengthLevel = l.wavelengthLeve;
+        this.wavelengthLevel = l.energyLevel;
         this.beam = l.name;
     }
 
     public md_LaserData(Beam l,float power){
         this.length = l.lenght;
-        this.wavelengthLevel = l.wavelengthLeve;
+        this.wavelengthLevel = l.energyLevel;
         this.power = power;
         this.beam = l.name;
     }

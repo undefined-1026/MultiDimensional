@@ -1,4 +1,4 @@
-package mDimension.content;
+package mDimension.type;
 
 import mindustry.type.Item;
 import mindustry.world.Tile;
