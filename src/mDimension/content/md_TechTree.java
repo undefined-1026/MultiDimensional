@@ -5,6 +5,7 @@ import arc.struct.Seq;
 import static mDimension.content.md_items.*;
 import static mDimension.content.md_liquids.*;
 import static mDimension.content.md_blocks.*;
+import static mindustry.content.Items.*;
 import mindustry.content.TechTree;
 import mindustry.ctype.UnlockableContent;
 import mindustry.game.Objectives;
@@ -21,18 +22,25 @@ public class md_TechTree {
         md_Planets.depicilon.techTree = nodeRoot("depicilon",md_blocks.coreSteady,()->{
 
             node(md_blocks.aluminium_electrolysis_cell,()->{
-                node(md_blocks.al_alloy_smelting,()->{
-                    node(md_blocks.ti_alloy_smelting,()->{
-                        node(md_blocks.ngm_launch_pad);
-                    });
-                    node(md_blocks.multiway_unloader);
-                    node(md_blocks.light_duct_bridge);
-                    node(md_blocks.stack_rail_conveyor);
-                });
-                node(md_blocks.light_duct);
+                node(md_blocks.al_alloy_smelting);
+
             });
 
-            node(fracture);
+            node(md_blocks.light_duct,()->{
+                node(md_blocks.armored_light_duct,()->{
+                    node(md_blocks.stack_rail_conveyor);
+                });
+                node(md_blocks.multiway_unloader);
+                node(md_blocks.light_duct_bridge);
+            });
+
+            node(beam_bore,()->{
+                node(small_impact_drill);
+            });
+
+            node(md_blocks.ngm_launch_pad);
+
+            node(fracture,Seq.with(new Objectives.Produce(ti_alloy)),()->{});
 
             nodeProduce(bauxite,()->{
                 nodeProduce(aluminium,()->{
@@ -46,7 +54,12 @@ public class md_TechTree {
                         nodeProduce(polymer);
                     });
                 });
+
             });
+            nodeProduce(titanium);
+            nodeProduce(copper);
+            nodeProduce(graphite);
+            nodeProduce(silicon);
         });
     }
 

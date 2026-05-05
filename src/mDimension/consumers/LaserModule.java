@@ -1,7 +1,7 @@
 package mDimension.consumers;
 
 import arc.struct.Seq;
-import mDimension.type.md_LaserData;
+import mDimension.world.blocks.md_LaserData;
 
 //只是一个数据类，用于统计建筑接收的总有效激光功率和接收的激光数据
 public class LaserModule {

@@ -1,13 +1,12 @@
 package mDimension;
 import arc.Core;
 import arc.Events;
-import arc.util.Log;
 import arc.util.Time;
-import mDimension.core.ExtendedRenderer;
+import mDimension.core.MDRenderer;
+import mDimension.core.MDShaders;
 import mDimension.meta.md_Stat;
 import mDimension.meta.md_StatUnit;
-import mindustry.Vars;
-import mindustry.core.Renderer;
+import mDimension.world.data.MDEvents;
 import mindustry.game.EventType;
 import mindustry.graphics.Shaders;
 import mindustry.mod.Mod;
@@ -17,6 +16,7 @@ import mindustry.ui.dialogs.BaseDialog;
 import mDimension.content.*;
 
 public class MDimensionMod extends Mod {
+
     public MDimensionMod() {
 
         Events.on(EventType.ClientLoadEvent.class, e -> {
@@ -36,6 +36,7 @@ public class MDimensionMod extends Mod {
     @Override
     public void init() {
         MDShaders.init();
+        MDRenderer.init();
 
     }
 
@@ -47,13 +48,13 @@ public class MDimensionMod extends Mod {
     }
 
     @Override
-    public void loadContent(){
+    public void loadContent() {
 
         Shaders.init();
         super.loadContent();
         //载入
 
-        md_Planets.load();
+        MDEvents.load();
         md_beams.load();
         md_StatUnit.load();
         md_Stat.load();
@@ -65,22 +66,12 @@ public class MDimensionMod extends Mod {
         md_blocks.load();
         original_reset.load();
 
+        md_Loadouts.load();
+        md_Planets.load();
+
         md_SectorPresets.load();
         md_TechTree.load();
 
-    }
-
-    private void setupExtendedRenderer() {
-        Renderer oldRenderer = Vars.renderer;
-        try {
-            ExtendedRenderer extendedRenderer = new ExtendedRenderer();
-            extendedRenderer.init();
-            Vars.renderer = extendedRenderer;
-            Log.info("ExtendedRenderer initialized successfully!");
-        } catch (Throwable e) {
-            Log.err("Failed to initialize ExtendedRenderer:", e);
-            Vars.renderer = oldRenderer;
-        }
     }
 
 }

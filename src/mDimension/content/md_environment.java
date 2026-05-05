@@ -1,51 +1,37 @@
 package mDimension.content;
 
-import arc.Core;
 import arc.graphics.Color;
-import arc.graphics.Texture;
-import arc.graphics.g2d.Draw;
-import arc.graphics.g2d.TextureRegion;
-import arc.graphics.gl.Shader;
-import arc.math.Mathf;
-import arc.math.geom.Geometry;
-import arc.math.geom.Point2;
-import arc.util.Time;
-import mDimension.tool.AutotileSlice;
-import mDimension.type.FloorPro;
-import mindustry.Vars;
+import mDimension.world.blocks.FloorPro;
 import mindustry.content.Blocks;
 import mindustry.content.Items;
-import mindustry.content.Liquids;
 import mindustry.content.StatusEffects;
 import mindustry.graphics.CacheLayer;
 import mindustry.graphics.Shaders;
-import mindustry.ui.dialogs.SettingsMenuDialog;
 import mindustry.world.Block;
-import mindustry.world.Tile;
-import mindustry.world.blocks.TileBitmask;
 import mindustry.world.blocks.environment.Floor;
 import mindustry.world.blocks.environment.OreBlock;
+import mindustry.world.blocks.environment.Prop;
 import mindustry.world.blocks.environment.StaticWall;
-import mindustry.world.blocks.environment.TiledFloor;
 import mindustry.world.meta.Attribute;
-
-import static mindustry.Vars.renderer;
 
 public class md_environment {
     public static Block
-            crystallization_oil_floor,magnetic_shale_wall,magnetic_shale_stone,brownSandFloor,brownSandWall,
+            crystallization_oil_deep,crystallization_oil,magnetic_shale_wall,magnetic_shale_stone,brownSandFloor,brownSandWall,
     light_shale_wall,pure_light_shale_wall,darkCrystallineStoneWall,darkRedStoneWall,
             inlayMetalTiles4,darkCrystalFloor,darkCrystallineStone,darkDenseRedStone,darkRedStone,
+            light_shale_floor,pure_light_shale_floor,yellow_ice,yellow_ice_snow,
     //ore
-    oreAluminium,WallOreTitanium;
+    oreAluminium,WallOreTitanium,oreGraphite,WallOreCopper,
+    //props
+    darkCrystallineBoulders;
     public static CacheLayer
-            threeWave
+            crystallization_deep,crystallization
     ;
     public static void load(){
         loadCacheLayer();
-        crystallization_oil_floor = new Floor("crystallization-oil-floor"){{
+        crystallization_oil_deep = new Floor("crystallization-oil-deep"){{
             liquidDrop = md_liquids.crystallization_oil;
-            cacheLayer = threeWave;
+            cacheLayer = crystallization_deep;
             supportsOverlay = true;
             overlayAlpha = 0.6f;
             drownTime = 80f;
@@ -53,14 +39,24 @@ public class md_environment {
             statusDuration = 150f;
             speedMultiplier = 0.9f;
             variants = 0;
+            liquidMultiplier = 1f;
+            isLiquid = true;
+        }};
+
+        crystallization_oil = new Floor("crystallization-oil-floor"){{
+            liquidMultiplier = 0.5f;
+            variants = 3;
+            liquidDrop = md_liquids.crystallization_oil;
+            cacheLayer = crystallization_deep;
+            supportsOverlay = true;
+            overlayAlpha = 0.6f;
+            drownTime = 0;
+            status = StatusEffects.tarred;
+            statusDuration = 150f;
+            speedMultiplier = 0.9f;
             liquidMultiplier = 1.5f;
             isLiquid = true;
 
-            emitLight = true;
-            lightRadius = 18f;
-            lightColor = Color.valueOf("FFE299").a(0.05f);
-            obstructsLight = true;
-            forceDrawLight = false;
         }};
 
         brownSandFloor = new Floor("brown-sand-floor"){{
@@ -73,13 +69,15 @@ public class md_environment {
             attributes.set(Attribute.sand, 2f);
         }};
 
-        magnetic_shale_wall = new StaticWall("magnetic-shale-wall"){{
-            attributes.set(Attribute.sand, 0.7f);
-        }};
-
         magnetic_shale_stone = new Floor("magnetic-shale-stone"){{
             attributes.set(Attribute.water, -0.2f);
         }};
+
+        magnetic_shale_wall = new StaticWall("magnetic-shale-wall"){{
+            attributes.set(Attribute.sand, 0.7f);
+            magnetic_shale_stone.asFloor().wall = this;
+        }};
+
 
         oreAluminium = new OreBlock("ore-aluminium",md_items.aluminium){{
             oreDefault = true;
@@ -91,9 +89,33 @@ public class md_environment {
             wallOre = true;
         }};
 
+        oreGraphite = new OreBlock("ore-graphite",Items.graphite){{
+            oreDefault = true;
+            oreThreshold = 0.846f;
+            oreScale = 24.428572f;
+        }};
+
+        WallOreCopper = new OreBlock("ore-wall-copper",Items.copper){{
+            wallOre = true;
+        }};
+
+
+        light_shale_floor = new Floor("light-stone-floor"){{
+            emitLight = true;
+            lightRadius = 12f;
+            lightColor = Color.valueOf("AFB88B").a(0.2f);
+        }};
+        pure_light_shale_floor = new Floor("pure-light-stone-floor"){{
+            emitLight = true;
+            lightRadius = 30f;
+            lightColor = Color.valueOf("E0E8C0").a(0.6f);
+        }};
+
         light_shale_wall = new StaticWall("light-stone-wall"){{
+            light_shale_floor.asFloor().wall = this;
         }};
         pure_light_shale_wall = new StaticWall("pure-light-stone-wall"){{
+            pure_light_shale_floor.asFloor().wall = this;
         }};
 
         inlayMetalTiles4 = new FloorPro("inlay-metal-tiles-1"){{
@@ -101,6 +123,7 @@ public class md_environment {
             drawEdgeOut = false;
             drawEdgeIn = false;
             mapColor = Color.valueOf("FFDB82");
+            this.asFloor().wall = Blocks.metalWall3;
         }};
 
         darkCrystalFloor = new Floor("dark-crystal-floor"){{
@@ -126,11 +149,28 @@ public class md_environment {
             darkDenseRedStone.asFloor().wall = darkRedStone.asFloor().wall = this;
         }};
 
+        yellow_ice = new Floor("yellow-ice"){{
+            variants = 3;
+            attributes.set(Attribute.water, 1.5f);
+        }};
+
+        yellow_ice_snow = new Floor("yellow-ice-snow"){{
+            variants = 3;
+            attributes.set(Attribute.water, 1.5f);
+        }};
+
+
+        darkCrystallineBoulders = new Prop("dark-crystalline-boulders"){{
+            variants = 3;
+            darkCrystalFloor.asFloor().decoration = this;
+        }};
 
     }
 
     public static void loadCacheLayer(){
-        threeWave = new CacheLayer.ShaderLayer(new Shaders.SurfaceShader("crystallization-oil"));
-        CacheLayer.add(threeWave);
+        crystallization_deep = new CacheLayer.ShaderLayer(new Shaders.SurfaceShader("crystallization-oil-deep"));
+        CacheLayer.add(crystallization_deep);
+        crystallization = new CacheLayer.ShaderLayer(new Shaders.SurfaceShader("crystallization-oil"));
+        CacheLayer.add(crystallization);
     }
 }

@@ -5,8 +5,8 @@ import arc.graphics.Color;
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import mDimension.meta.md_StatValues;
-import mDimension.type.Beam;
-import mDimension.type.md_LaserData;
+import mDimension.world.data.Beam;
+import mDimension.world.blocks.md_LaserData;
 import mindustry.content.Items;
 import mindustry.gen.Building;
 import mindustry.ui.Bar;
@@ -14,8 +14,6 @@ import mindustry.world.Block;
 import mindustry.world.consumers.Consume;
 import mindustry.world.meta.Stat;
 import mindustry.world.meta.Stats;
-
-import java.util.Objects;
 
 public class ConsumeBeam extends Consume {
     public Seq<md_LaserData> lasers = new Seq<>();
@@ -30,21 +28,26 @@ public class ConsumeBeam extends Consume {
     public Beam inputBeam = null;
     public int maxSize = 256;
 
+    public static Seq<ConsumeBeam> allConsume = new Seq<>();
+
     public float cachePower = 0f;
     public ObjectMap<Building,LaserModule> laserDataMap = new ObjectMap<>();
 
-    public ConsumeBeam(){}
+    public ConsumeBeam(){allConsume.add(this);}
     public ConsumeBeam(float requiredPower){
         this.requiredPower = requiredPower;
+        allConsume.add(this);
     }
     public ConsumeBeam(float requiredPower, float minWavelength, float maxWavelength){
         this.requiredPower = requiredPower;
         this.minWavelength = minWavelength;
         this.maxWavelength = maxWavelength;
+        allConsume.add(this);
     }
     public ConsumeBeam(float requiredPower, Beam beam){
         this.requiredPower = requiredPower;
         this.inputBeam = beam;
+        allConsume.add(this);
     }
     @Override
     public void apply(Block block) {
@@ -119,6 +122,19 @@ public class ConsumeBeam extends Consume {
                 t.add(md_StatValues.BeamStack(inputBeam,requiredPower,false));
             }
         });
+    }
+
+    public static void free(){
+        ObjectMap<Building,LaserModule> allcopy;
+        for (ConsumeBeam c:allConsume) {
+            allcopy = c.laserDataMap.copy();
+            for (ObjectMap.Entry e : allcopy) {
+                if (e.key instanceof Building b && (b.dead || b.health < 0)) {
+                    c.laserDataMap.remove(b);
+                }
+            }
+            allcopy.clear();
+        }
     }
 
 }

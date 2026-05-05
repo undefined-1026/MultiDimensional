@@ -144,19 +144,16 @@ public class MultiPointLaserBullet extends BulletType {
         }
     }
 
-    // 计算持续伤害（保留原逻辑）
     @Override
     public float continuousDamage() {
         return damage / damageInterval * 60f;
     }
 
-    // 估算DPS（保留原逻辑）
     @Override
     public float estimateDPS() {
         return damage * 100f / damageInterval * 3f;
     }
 
-    // 绘制激光：保留你的自定义绘制（激光起点、中心点绘制）
     @Override
     public void draw(Bullet b) {
         super.draw(b);
@@ -166,12 +163,10 @@ public class MultiPointLaserBullet extends BulletType {
                 float drawX = aim.x + b.aimX;
                 float drawY = aim.y + b.aimY;
                 Draw.color(color);
-                // 保留你的激光起点旋转逻辑
                 Vec2 begin = beginVec2[i].cpy().rotate(b.rotation() - 90);
                 Drawf.laser(laser, laserEnd, b.x + begin.x, b.y + begin.y, drawX, drawY, getLaserWidth(b));
                 Draw.reset();
             }
-            // 保留你的中心点绘制逻辑
             Draw.color(b.team.color);
             Draw.alpha(b.fslope() * 0.7f);
             Draw.z(122);
@@ -189,21 +184,17 @@ public class MultiPointLaserBullet extends BulletType {
             boolean isDamageTime = b.timer.get(0, damageInterval);
             boolean isBeamEffectTime = b.timer.get(1, beamEffectInterval);
 
-            boolean targetListChanged = updateTargetList(b, module);
-            //if (targetListChanged) {
+            updateTargetList(b, module);
+
             assignDifferentTargets(module,b);
-           // }
 
 
             for (int i = 0; i < amount; i++) {
-                // 强制保证 module.index 合法
                 module.index = Mathf.clamp(i, 0, amount - 1);
                 updateAim(b, module, module.index);
                 updateTrail(b, module);
                 updateTrailEffects(b, module);
                 updateBulletInterval(b, module);
-
-                // ... 伤害/特效逻辑 ...
 
                 if (isDamageTime) {
                     Vec2 aim = module.aims[i];
@@ -225,7 +216,7 @@ public class MultiPointLaserBullet extends BulletType {
         return super.damageMultiplier(b) / amount;
     }
 
-    // 保留你的动态检测半径计算
+
     public float traceRad(Bullet b) {
         return Mathf.len(b.aimX - b.x, b.aimY - b.y) * traceRadMulti + baseTraceRad;
     }
@@ -235,27 +226,21 @@ public class MultiPointLaserBullet extends BulletType {
         return len*len;
     }
 
-    /**
-     * 核心修复1：更新目标列表+判断是否变化（避免重复分配）
-     */
     private boolean updateTargetList(Bullet b, MultiPointLaserModule module) {
         Seq<Unit> oldTargets = new Seq<>(module.targets);
         module.targets.clear();
 
-        // 保留你的目标检测逻辑（动态半径）
         Units.nearbyEnemies(b.team, b.aimX, b.aimY, traceRad(b), enemy -> {
             if (!enemy.dead() && enemy.isValid() && enemy.targetable(b.team)) {
                 module.targets.add(enemy);
             }
         });
 
-        // 保留你的排序逻辑（距离-血量优先级）
         module.targets.sort((u1, u2) -> Float.compare(
                 u1.dst2(b.aimX, b.aimY) - u1.maxHealth,
                 u2.dst2(b.aimX, b.aimY) - u2.maxHealth
         ));
 
-        // 判断列表是否变化（用于触发重新分配）
         if (oldTargets.size != module.targets.size) return true;
         for (int i = 0; i < oldTargets.size; i++) {
             if (oldTargets.get(i) != module.targets.get(i)) return true;
@@ -277,9 +262,6 @@ public class MultiPointLaserBullet extends BulletType {
     }
 
 
-    /**
-     * 核心修复2：主动分配不同目标（解决初始单目标所有激光打同一个）
-     */
     private void assignDifferentTargets(MultiPointLaserModule module,Bullet b) {
         Seq<Unit> targets = module.targets;
         Unit[] locks = module.lockedTargets;
@@ -366,7 +348,6 @@ public class MultiPointLaserBullet extends BulletType {
 //        }
     }
 
-    // 更新瞄准：保留你的逻辑+核心修复
     private void updateAim(Bullet b, MultiPointLaserModule module, int index) {
         // 核心防御：index 必须在 [0, amount-1] 范围内
         if (index < 0 || index >= module.aims.length) {
@@ -403,7 +384,6 @@ public class MultiPointLaserBullet extends BulletType {
         idleAct(aim, index, b);
     }
 
-    // 轨迹更新：保留你的逻辑
     private void updateTrail(Bullet b, MultiPointLaserModule module) {
         if (headless || trailLength <= 0) return;
         // 双重校验：index 范围 + 数组非空
@@ -416,7 +396,6 @@ public class MultiPointLaserBullet extends BulletType {
         trail.update(aim.x + b.aimX, aim.y + b.aimY, getLaserWidth(b));
     }
 
-    // 轨迹特效：保留你的逻辑
     private void updateTrailEffects(Bullet b, MultiPointLaserModule module) {
         Vec2 aim = module.aims[module.index];
         float aimX = aim.x + b.aimX, aimY = aim.y + b.aimY;
@@ -431,7 +410,6 @@ public class MultiPointLaserBullet extends BulletType {
         }
     }
 
-    // 子子弹发射：保留你的逻辑
     private void updateBulletInterval(Bullet b, MultiPointLaserModule module) {
         if (intervalBullet == null || b.time < intervalDelay) return;
         if (b.timer.get(2, bulletInterval)) {
@@ -447,13 +425,11 @@ public class MultiPointLaserBullet extends BulletType {
         }
     }
 
-    // 保留你的激光宽度计算（含fractMulti）
     private float getLaserWidth(Bullet b) {
         float lifeFract = b.fslope();
         return lifeFract * (1f - oscMag + Mathf.absin(Time.time, oscScl, oscMag)) * fractMulti;
     }
 
-    // 保留你的自定义轨迹绘制
     @Override
     public void drawTrail(Bullet b) {
         if (trailLength > 0 && b.data instanceof MultiPointLaserModule module) {
@@ -467,7 +443,6 @@ public class MultiPointLaserBullet extends BulletType {
         }
     }
 
-    // 子弹移除：保留资源清理+你的逻辑
     @Override
     public void removed(Bullet b) {
         super.removed(b);
@@ -482,7 +457,6 @@ public class MultiPointLaserBullet extends BulletType {
         }
     }
 
-    // 空实现：兼容父类方法
     @Override
     public void updateTrail(Bullet b) {}
     @Override
@@ -509,7 +483,7 @@ public class MultiPointLaserBullet extends BulletType {
             this.targets = new Seq<>();
             for (int i = 0; i < type.amount; i++) {
                 this.aims[i] = new Vec2();
-                this.trails[i] = new Trail(type.trailLength); // 保留你的trailLength初始化
+                this.trails[i] = new Trail(type.trailLength);
             }
         }
     }

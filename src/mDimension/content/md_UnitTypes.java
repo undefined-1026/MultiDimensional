@@ -5,41 +5,31 @@ import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Fill;
 import arc.math.Mathf;
-import arc.math.geom.Vec2;
 import arc.util.Time;
 import arc.util.Tmp;
 import mDimension.entity.ability.PatienceAbility;
-import mDimension.entity.ability.SprintAbility;
 import mDimension.entity.bullet.BallLightningBulletType;
 import mDimension.tool.Drawff;
-import mDimension.type.DepicilonUnitType;
-import mDimension.type.md_Fx;
-import mDimension.type.weapons.OverdriveWeapon;
+import mDimension.world.blocks.DepicilonUnitType;
+import mDimension.world.blocks.md_Fx;
+import mDimension.world.weapons.OverdriveWeapon;
 import mindustry.ai.types.BuilderAI;
 import mindustry.content.Fx;
-import mindustry.content.StatusEffects;
-import mindustry.content.UnitTypes;
-import mindustry.entities.abilities.Ability;
-import mindustry.entities.abilities.EnergyFieldAbility;
 import mindustry.entities.abilities.ShieldRegenFieldAbility;
 import mindustry.entities.abilities.StatusFieldAbility;
 import mindustry.entities.bullet.BasicBulletType;
 import mindustry.entities.bullet.ContinuousFlameBulletType;
-import mindustry.entities.bullet.LaserBoltBulletType;
 import mindustry.entities.bullet.ShrapnelBulletType;
 import mindustry.entities.effect.MultiEffect;
-import mindustry.entities.part.DrawPart;
 import mindustry.entities.part.RegionPart;
 import mindustry.entities.pattern.ShootBarrel;
 import mindustry.entities.units.WeaponMount;
 import mindustry.gen.*;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
-import mindustry.graphics.Pal;
 import mindustry.type.UnitType;
 import mindustry.type.Weapon;
 
-import static mDimension.type.md_Fx.polyStarExplosion;
 import static mindustry.Vars.tilesize;
 
 import static mDimension.content.md_blocks.modname;
@@ -224,27 +214,29 @@ public class md_UnitTypes {
             }});
         }};
         shimmer = new DepicilonUnitType("shimmer"){{
-            constructor = ElevationMoveUnit::create;
 
             hovering = true;
             canDrown = false;
+            flying = true;
+            lowAltitude = true;
             shadowElevation = 0.1f;
             softShadowScl = 0.7f;
 
             drag = 0.08f;
-            speed = 1.8f;
+            speed = 2f;
             rotateSpeed = 6f;
 
             accel = 0.07f;
 
-            health = 850f;
+            health = 650f;
             armor = 2f;
             hitSize = 11f;
 
-            engineSize = 0;
+            engineSize = 2f;
+            engineOffset = 19/4f;
             itemCapacity = 15;
             setEnginesMirror(
-                    new UnitEngine(17f/4f,-14f/4f,2.5f,-45f)
+                    new UnitEngine(18/4f,-8/4f,2f,-45f)
             );
 
             useEngineElevation = false;
@@ -253,28 +245,44 @@ public class md_UnitTypes {
             moveSoundVolume = 0.25f;
             moveSoundPitchMin = 0.7f;
             moveSoundPitchMax = 1.5f;
-            weapons.add(new Weapon("shimmer-weapon"){{
-                range = 15.5f;
+
+            weapons.add(new Weapon(modname+"shimmer-weapon"){{
+                top = false;
+                range = 25f;
                 alwaysContinuous = true;
                 mirror = false;
                 top = false;
-                shootY = 4f;
-                x = y = 0f;
+                shootY = 0f;
+                x = 0;
+                y = 2f;
+                recoil = 0;
+                parts.add(new RegionPart("-blade"){{
+                    heatProgress = PartProgress.warmup;
+                    progress = PartProgress.warmup;
+                    heatColor = Color.valueOf("FFAA50");
+                    x = 0f;
+                    y = 0f;
+                    moveRot = -18f;
+                    moveY = 0.8f;
+                    moveX = 0f;
+                    under = true;
+                    mirror = true;
+                }});
                 shootSound = Sounds.none;
                 activeSound = Sounds.shootSublimate;
                 activeSoundVolume = 1.5f;
                 bullet = new ContinuousFlameBulletType(){{
-                    damage = 40f;
-                    length = 9f;
-                    width = 4.5f;
+                    damage = 30f;
+                    length = 19;
+                    width = 3f;
                     ammoMultiplier = 1.2f;
                     knockback = 1f;
                     pierceCap = 2;
                     buildingDamageMultiplier = 0.3f;
 
                     hitColor = flareColor = Color.valueOf("FFDB78");
-                    flareLength = 7f;
-                    flareWidth = 3f;
+                    flareLength = 9f;
+                    flareWidth = 2f;
                     colors = new Color[]{
                             Color.valueOf("DB7D42").a(0.45f),
                             Color.valueOf("E8AC58").a(0.65f),
@@ -411,6 +419,7 @@ public class md_UnitTypes {
                         mirror = false;
                         shootCone = 360f;
                         reload = 180f;
+                        range = 7.5f*8;
                         bullet = new BallLightningBulletType(){{
                             shootEffect = md_Fx.polyStarExplosion(45,4,50,6,45,false);
                             overflow = false;

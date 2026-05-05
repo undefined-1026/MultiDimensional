@@ -1,11 +1,8 @@
 package mDimension.content;
 
 import arc.graphics.Color;
-import arc.graphics.g2d.Fill;
-import arc.graphics.g2d.Lines;
-import arc.math.Mathf;
 import mDimension.tool.Drawff;
-import mDimension.type.Beam;
+import mDimension.world.data.Beam;
 
 public class md_beams {
     public static Beam

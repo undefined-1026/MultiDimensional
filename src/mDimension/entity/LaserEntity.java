@@ -1,7 +1,6 @@
 package mDimension.entity;
 
 import arc.graphics.g2d.Draw;
-import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.Seq;
@@ -10,10 +9,10 @@ import arc.util.io.Writes;
 import mDimension.consumers.ConsumeBeam;
 import mDimension.content.md_beams;
 import mDimension.tool.md_Edge;
-import mDimension.type.Beam;
-import mDimension.type.LaserCrafter;
-import mDimension.type.md_BeamDeflector;
-import mDimension.type.md_LaserData;
+import mDimension.world.data.Beam;
+import mDimension.world.blocks.LaserCrafter;
+import mDimension.world.blocks.md_BeamDeflector;
+import mDimension.world.blocks.md_LaserData;
 import mindustry.Vars;
 import mindustry.content.Blocks;
 import mindustry.content.Items;

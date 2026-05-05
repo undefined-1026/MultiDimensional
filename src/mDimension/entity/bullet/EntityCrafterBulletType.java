@@ -1,11 +1,7 @@
 package mDimension.entity.bullet;
 
-import arc.graphics.Color;
-import mDimension.type.md_Fx;
 import mindustry.entities.bullet.BasicBulletType;
-import mindustry.entities.bullet.BulletType;
 import mindustry.gen.Bullet;
-import mindustry.gen.Entityc;
 
 public class EntityCrafterBulletType extends BasicBulletType {
     //public Entityc entity;

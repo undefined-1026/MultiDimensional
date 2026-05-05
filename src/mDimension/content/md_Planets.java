@@ -19,8 +19,16 @@ public class md_Planets {
         depicilon = new Planet("depicilon",Planets.sun,1f,3){{
             loadPlanetData = true;
             orbitRadius = 75;
+            defaultCore = md_blocks.coreSteady;
+            ruleSetter = r -> {
+                r.waveTeam = Team.crux;
+                r.placeRangeCheck = false;
+                r.showSpawns = true;
+                r.coreDestroyClear = true;
+                r.env = defaultEnv;
+                r.borderDarkness = false;
+            };
             generator = new DepicilonPlanetGenerator(){{
-
             }};
             meshLoader = () -> new HexMesh(this, 6);
             cloudMeshLoader = () -> new MultiMesh(
@@ -36,14 +44,6 @@ public class md_Planets {
             enemyCoreSpawnReplace = true;
             allowLaunchLoadout = true;
             defaultEnv = Env.terrestrial;
-            ruleSetter = r -> {
-                r.waveTeam = Team.crux;
-                r.placeRangeCheck = false;
-                r.showSpawns = true;
-                r.coreDestroyClear = true;
-                r.env = defaultEnv;
-                r.borderDarkness = false;
-            };
             showRtsAIRule = true;
             prebuildBase = true;
             iconColor = Color.valueOf("FFF5B2");

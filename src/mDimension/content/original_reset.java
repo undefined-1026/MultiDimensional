@@ -3,8 +3,7 @@ import arc.Core;
 import arc.graphics.Color;
 import arc.struct.Seq;
 import mDimension.entity.ability.SprintAbility;
-import mDimension.type.md_Fx;
-import mDimension.type.weapons.OverdriveWeapon;
+import mDimension.world.weapons.OverdriveWeapon;
 import mindustry.content.*;
 import mindustry.entities.bullet.LiquidBulletType;
 import mindustry.entities.bullet.MultiBulletType;
@@ -12,7 +11,6 @@ import mindustry.entities.bullet.PointLaserBulletType;
 import mindustry.type.*;
 import mindustry.world.blocks.defense.turrets.ContinuousTurret;
 import mindustry.world.blocks.defense.turrets.LiquidTurret;
-import mindustry.world.blocks.production.GenericCrafter;
 
 public class original_reset {
     public static void load() {

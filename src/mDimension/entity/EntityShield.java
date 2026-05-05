@@ -10,7 +10,7 @@ import arc.math.geom.Position;
 import arc.util.Time;
 import arc.util.io.Reads;
 import arc.util.io.Writes;
-import mDimension.type.md_Fx;
+import mDimension.world.blocks.md_Fx;
 import mindustry.entities.Effect;
 import mindustry.entities.EntityGroup;
 import mindustry.game.Team;
@@ -19,8 +19,6 @@ import mindustry.graphics.Layer;
 import mindustry.world.Block;
 import mindustry.world.Tile;
 import mindustry.world.blocks.environment.Floor;
-
-import javax.naming.Name;
 
 
 public class EntityShield implements Entityc , Drawc {

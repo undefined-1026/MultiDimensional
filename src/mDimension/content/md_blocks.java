@@ -6,16 +6,13 @@ import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Fill;
 import arc.graphics.g2d.Lines;
-import arc.graphics.g2d.TextureRegion;
-import arc.graphics.gl.Shader;
 import arc.math.Angles;
 import arc.math.Interp;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.Seq;
 import arc.util.Time;
-import arc.util.Tmp;
-import mDimension.MDShaders;
+import mDimension.consumers.ConsumeFlux;
 import mDimension.consumers.ConsumeBeam;
 import mDimension.consumers.MultiRecipeConsume;
 import mDimension.draw.DrawPiston;
@@ -23,11 +20,13 @@ import mDimension.draw.DrawRotation;
 import mDimension.entity.EntityShield;
 import mDimension.entity.MultiSound;
 import mDimension.entity.bullet.BallLightningBulletType;
+import mDimension.entity.bullet.CatapultBulletType;
 import mDimension.entity.bullet.EntityCrafterBulletType;
 import mDimension.entity.bullet.MultiPointLaserBullet;
 import mDimension.entity.pattern.ShootSwing;
-import mDimension.tool.Drawff;
-import mDimension.type.*;
+import mDimension.world.blocks.*;
+import mDimension.world.flux.FluxBlock;
+import mDimension.world.flux.FluxNode;
 import mindustry.content.*;
 import mindustry.entities.UnitSorts;
 import mindustry.entities.bullet.*;
@@ -44,20 +43,22 @@ import mindustry.gen.Sounds;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Pal;
-import mindustry.graphics.Shaders;
 import mindustry.type.Category;
 import mindustry.type.ItemStack;
 import mindustry.type.LiquidStack;
 import mindustry.type.Weapon;
 import mindustry.type.unit.MissileUnitType;
 import mindustry.world.Block;
+import mindustry.world.blocks.defense.Wall;
 import mindustry.world.blocks.defense.turrets.ContinuousTurret;
 import mindustry.world.blocks.defense.turrets.ItemTurret;
 import mindustry.world.blocks.distribution.Duct;
 import mindustry.world.blocks.distribution.StackConveyor;
 import mindustry.world.blocks.payloads.Constructor;
+import mindustry.world.blocks.power.PowerNode;
 import mindustry.world.blocks.production.*;
 import mindustry.world.blocks.storage.StorageBlock;
+import mindustry.world.consumers.ConsumePower;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
 
@@ -85,11 +86,13 @@ public class md_blocks {
     //ammo
     heavy_ammo,
     //turret
-    ionize, fracture,break_water, polarization,dawn,test4,test5,crest,
+    ionize, fracture,break_water, polarization,dawn,crack,crest,test4,test5,
+    //wall
+    aluminium_wall,aluminium_wall_large,
     //core
     coreSteady,proof_container,stack,
     //power
-    internal_energy_pile,
+    internal_energy_pile,magnetic_node,
     //payload
     small_payload_conveyor,
             small_payload_router,
@@ -315,6 +318,7 @@ public class md_blocks {
             //endregion
             //region ngm_launch_pad 开采平台
             ngm_launch_pad = new md_LaunchPadCrafter("ngm-launch-pad") {{
+                requirements(Category.crafting, with(md_items.ti_alloy,350,md_items.al_alloy,500,Items.silicon,600,Items.graphite,700));
                 size = 10;
                 hasItems = true;
                 hasLiquids = true;
@@ -328,7 +332,6 @@ public class md_blocks {
                 landTime = 3.4f*60f;
                 launchEffect = md_Fx.loadLaunch(launchTime, this.name + "-pod", 17f * 8f, 0f, 1f, 1f);
                 landEffect = md_Fx.loadLand(landTime, this.name + "-returnpod", 17 * 8f, 0, 1, 1.5f, loadStayTime);
-                requirements(Category.crafting, with(Items.beryllium, 70, Items.graphite, 80));
                 consumePower(5f);
 
                 consumeItems(ItemStack.with(
@@ -862,6 +865,125 @@ public class md_blocks {
                 }};
                 size = 1;
                 consumePower(4f);
+            }};
+            crack = new ItemTurret("crack"){{
+                requirements(Category.turret, ItemStack.with(md_items.aluminium, 80, Items.titanium, 50));
+                ammo(
+                        md_items.aluminium,
+                        new CatapultBulletType(20*8/60f*1.5f,30){{
+                        trailLength = 10;
+                        trailWidth = 2f;
+                        lifetime = 40;
+                        pierce = true;
+                        pierceBuilding = true;
+                        pierceCap = 3;
+                        reloadMultiplier = 1.3f;
+
+                        catapultProlongLifeTime = 2f;
+                        catapultSpeedUp = 0.4f;
+
+                        backColor = trailColor = Color.valueOf("FFB89E");
+                        width = 8;
+                        height = 10;
+                        }},
+                        md_items.light_ceramic,
+                        new CatapultBulletType(25*8/60f*1.5f,40){{
+                            homingPower = 0.01f;
+                            homingRange = 100f;
+                            rangeChange = 5*8f;
+                            trailLength = 12;
+                            trailWidth = 2f;
+                            lifetime = 40;
+                            pierce = true;
+                            pierceBuilding = true;
+                            pierceCap = 5;
+                            catapultRange = 80f;
+                            catapultProlongLifeTime = 2.5f;
+                            catapultSpeedUp = 0.8f;
+
+                            width = 8;
+                            height = 13;
+
+                            backColor = trailColor = md_items.light_ceramic.color;
+
+                            lightning = 2;
+                            lightningColor = md_items.light_ceramic.color;
+                            lightningDamage = 15f;
+                            lightningLength = 2;
+                            lightningLengthRand = 2;
+                        }},
+                        md_items.al_alloy,
+                        new CatapultBulletType(27*8/60f*1.5f,25){{
+                            rangeChange = 7*8f;
+                            trailLength = 12;
+                            trailWidth = 2f;
+                            lifetime = 40;
+                            pierce = true;
+                            pierceBuilding = true;
+                            pierceCap = 4;
+                            catapultRange = 60;
+                            catapultProlongLifeTime = 7f;
+                            catapultSpeedUp = 0.4f;
+
+                            backColor = trailColor = Color.valueOf("E6FDFF");
+
+                            width = 8;
+                            height = 13;
+
+                            fragBullets = 2;
+                            fragOffsetMax = fragOffsetMin = 0;
+                            fragAngle = 0;
+                            fragSpread = 180f;
+                            fragRandomSpread = 0;
+                            fragBullet = new ShrapnelBulletType(){{
+                                damage = 25;
+                                length = 2*8f;
+                                width = 6f;
+                                serrationWidth = 4f;
+                                serrations = 3;
+                                serrationSpacing = 6f;
+                                serrationSpaceOffset = 20;
+                                serrationLenScl = 3;
+                                toColor = md_items.al_alloy.color;
+                            }};
+                        }}
+
+                );
+                size = 2;
+
+                range = 20*8;
+                reload = 25;
+                inaccuracy = 3f;
+                scaledHealth = 250;
+                drawer = new DrawTurret("steady-state-"){{
+                    parts.addAll(
+                            new RegionPart("-blade"){{
+                                mirror = true;
+                                moveX = 1.9f;
+                                moveY = 1.5f;
+                                moveRot = -35f;
+                                progress = PartProgress.warmup;
+                                moves.add(new PartMove(PartProgress.recoil,0.6f,0,-13f));
+
+                            }},new RegionPart("-hand"){{
+                                mirror = true;
+                                moveX = 0.4f;
+                                moveY = -0.4f;
+                                progress = PartProgress.warmup;
+                                moves.add(new PartMove(PartProgress.recoil,0.3f,-0.4f,-10f));
+
+                            }},
+                            new RegionPart("-mid"){{
+                            }},
+                            new RegionPart("-barr"){{
+                                moveY = -1f;
+                                progress = PartProgress.warmup;
+                                moves.add(new PartMove(PartProgress.recoil,0,-0.6f,0));
+                            }}
+
+                    );
+                }};
+
             }};
             fracture = new ItemTurret("fracture") {{
                 requirements(Category.turret, ItemStack.with(md_items.aluminium, 120, Items.silicon, 80, Items.titanium, 80));
@@ -1443,7 +1565,7 @@ public class md_blocks {
                             trailInterval = 1.2f;
                             width = 25f;
                             height = 43f;
-                            lifetime = 20f;
+                            lifetime = 16f;
                             hitSize = 15f;
                             despawnEffect = new MultiEffect(md_Fx.starExplosionBig,md_Fx.spikeExplosion);
                             hitEffect = new MultiEffect(md_Fx.spikeHit,md_Fx.spikeHitRotation);
@@ -1483,8 +1605,8 @@ public class md_blocks {
                         }}
                 );
                 shootCone = 3f;
-                range = 8*100f;
-                reload = 220;
+                range = 8*79.4f;
+                reload = 180;
                 rotateSpeed = 2;
                 coolant = consumeCoolant(40f/60f);
                 coolantMultiplier = 0.6f;
@@ -1687,6 +1809,17 @@ public class md_blocks {
                 loopSoundVolume = 0.8f;
             }};
         //endregion
+        //region wall
+        aluminium_wall = new Wall("aluminium-wall"){{
+            requirements(Category.defense,with(md_items.aluminium,24));
+            health = 2200/4;
+        }};
+        aluminium_wall_large = new Wall("aluminium-wall-large"){{
+            requirements(Category.defense,with(md_items.aluminium,24));
+            health = 2200;
+            size = 2;
+        }};
+        //endregion
         //region core
             coreSteady = new md_ElectricFieldCoreBlock("core-steady"){{
                 requirements(Category.effect, BuildVisibility.coreZoneOnly, with(Items.silicon, 1200, md_items.aluminium,1500,Items.titanium,1500));
@@ -1698,14 +1831,15 @@ public class md_blocks {
 
                 isFirstTier = true;
                 unitType =  md_UnitTypes.primitive;
-                armor = 5;
-                health = 4000;
+                armor = 4;
+                health = 3500;
                 itemCapacity = 6000;
                 buildCostMultiplier = 1f;
                 thrusterLength = 38f/4f;
 
                 lightningEffect = new MultiEffect(Fx.chainLightning, md_Fx.waveColor(20f,12f,4f));
-
+                lightnings = 7;
+                lightningDamage = 50f;
                 unitCapModifier = 15;
                 size = 4;
                 fullOverride = this.name + "-private";
@@ -1753,6 +1887,15 @@ public class md_blocks {
                     new DrawRegion("-shard8")
                     );
         }};
+        magnetic_node = new PowerNode("magnetic-node"){{
+            requirements(Category.power, with(md_items.aluminium,10));
+            maxNodes = 8;
+            laserRange = 7;
+            underBullets = true;
+            crushFragile = true;
+            consume(new ConsumePower(1f/60f,300,true));
+            enableDrawStatus = false;
+        }};
         //endregion
         //region payload
         small_payload_conveyor = new md_PayloadConveyor("small-payload-conveyor",2){{
@@ -1774,7 +1917,7 @@ public class md_blocks {
         //endregion
         //region ammo
         ammo_constructor = new Constructor("ammo-constructor"){{
-            requirements(Category.turret, with(Items.silicon, 50, Items.beryllium, 75, Items.tungsten, 40));
+            requirements(Category.turret, with(Items.silicon, 50, Items.graphite, 75,md_items.al_alloy, 40));
             regionSuffix = "-ammo";
             hasPower = true;
             buildSpeed = 0.6f;
@@ -1788,18 +1931,30 @@ public class md_blocks {
 
         Block test = new TestBlock("testBlock"){{
             requirements(Category.crafting,with());
-            TextureRegion text = Core.atlas.find("cat");
-            draw = (b)->{
-                Draw.draw(Draw.z(),()->{
-                    MDShaders.fisheye.region = text;
-                    MDShaders.fisheye.alpha = 0.5f;
-                    MDShaders.fisheye.progress = 0.5f;
-                    MDShaders.fisheye.time = Time.time;
-                    Draw.shader(MDShaders.fisheye);
-                    Draw.rect(text,b.x,b.y+20);
-                    Draw.shader();
-                });
-            };
+            consume(new ConsumeFlux(){{
+                produceAmount = 1f;
+                capacity = 20;
+                bearingCapacity = 10;
+                retain = 10f;
+
+
+            }});
+            craftTime = 30f;
+        }};
+        Block test1 = new FluxNode("node"){{
+            requirements(Category.power,with());
+            size = 1;
+            enableDrawStatus = false;
+        }};
+        Block test2 = new FluxBlock("batter"){{
+            requirements(Category.power,with());
+            size = 2;
+            consume(new ConsumeFlux(){{
+                capacity = 100;
+                retain = 80;
+                dissipationSpeed = 0.1f/60f;
+            }});
+            enableDrawStatus = false;
         }};
     }
     public static void loadAmmo(){
