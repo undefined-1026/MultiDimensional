@@ -7,6 +7,8 @@ import mDimension.consumers.ConsumeBeam;
 import mDimension.consumers.ConsumeFlux;
 import mDimension.consumers.modules.ExtraModule;
 import mDimension.consumers.modules.FluxModule;
+import mDimension.world.flux.FluxGraph;
+import mindustry.Vars;
 import mindustry.content.Blocks;
 import mindustry.content.Items;
 import mindustry.game.EventType;
@@ -18,6 +20,7 @@ import static mindustry.Vars.world;
 public class MDEvents {
     public static Interval timer;
     public static Seq<Building> out = new Seq<>();
+    public static Seq<FluxGraph> graphs = new Seq<>();
     public static  void load(){
         timer = new Interval(3);
         Events.run(EventType.Trigger.update,()->{
@@ -27,6 +30,8 @@ public class MDEvents {
                     mods.freeAllIf(b->b.dead);
                 }
             }
+
+
         });
         Events.on(EventType.BlockDestroyEvent.class,e->{
 
@@ -42,7 +47,50 @@ public class MDEvents {
                     }
                 }
             }
+            updateGraphs();
         });
 
+        Events.on(EventType.BlockBuildBeginEvent.class,e->{
+            updateGraphs();
+        });
+        Events.on(EventType.BlockBuildEndEvent.class,e->{
+            updateGraphs();
+        });
+
+        Events.on(EventType.PayloadDropEvent.class,e->{
+            if(e.build!=null){
+                updateGraphs();
+            }
+        });
+
+        Events.on(EventType.PickupEvent.class,e->{
+            if(e.build!=null){
+                updateGraphs();
+            }
+        });
+
+        Events.on(EventType.SaveLoadEvent.class,e->{
+            updateGraphs();
+        });
+
+
+
+
+    }
+
+    public static void updateGraphs(){
+        if(!Vars.state.isPaused()) {
+            int ind = 0;
+            Items.coal.description = "";
+            for (FluxGraph graph : graphs) {
+                if (graph.deprecate) {
+                    graphs.remove(graph);
+                } else if (graph.init) {
+                    Items.coal.description += "\n\n\nindex:" + ind + " allSize:" + graphs.size + "\n";
+                    graph.update();
+                }
+                ind++;
+            }
+        }
     }
 }

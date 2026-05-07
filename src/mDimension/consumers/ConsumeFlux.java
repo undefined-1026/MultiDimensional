@@ -14,6 +14,7 @@ import arc.util.Time;
 import mDimension.consumers.modules.ExtraModule;
 import mDimension.consumers.modules.FluxModule;
 import mDimension.tool.continuousRGB;
+import mDimension.world.flux.FluxGraph;
 import mDimension.world.flux.FluxNode;
 import mindustry.content.Fx;
 import mindustry.content.Items;
@@ -37,7 +38,6 @@ public class ConsumeFlux extends Consume {
     public static ExtraModule<FluxModule> fluxModMain = new ExtraModule<>();
     public static Interval timer = new Interval();
 
-    public static FluxModule fff;
     /** The maximum amount of power which can be processed per tick. This might influence efficiency or load a buffer. */
     public float usage =0;
 
@@ -170,9 +170,13 @@ public class ConsumeFlux extends Consume {
     @Override
     public void update(Building b) {
         FluxModule flux =  flux(b);
-
-
-
+        if(!flux.graph.init){
+            flux.graph.init(b);
+        }
+        if(!isNode && (flux.graph.deprecate)){
+            flux.graph = new FluxGraph();
+            flux.graph.init(b);
+        }
         IntSeq linksc = flux.links;
         linksc.each(pos->{
             Building link = world.tile(pos).build;
@@ -184,7 +188,7 @@ public class ConsumeFlux extends Consume {
 
         if(isNode)return;
         flux.fusing = isWillFusing && overloadProcess(flux)>0.99f;
-        if(flux.fusing && Mathf.chanceDelta(overloadProcess(flux) * effectChangePerTile * b.block.size* b.block.size)){
+        if(flux.fluxAmount>capacity && Mathf.chanceDelta(overloadProcess(flux) * effectChangePerTile * b.block.size* b.block.size)){
             overloadEffect.at(b.x+Mathf.range(b.block.size/2f)*8f,b.y+Mathf.range(b.block.size/2f)*8f,fluxColor(flux));
         }
 
@@ -193,21 +197,18 @@ public class ConsumeFlux extends Consume {
             flux.fluxAmount -= Math.min(amount,flux.fluxAmount-capacity);
         }
         //拉取辐能
-        if(timer.get(0,12) && pullFlux&& capacity> 0 && flux.fluxAmount<retain){
-            Seq<Building> bs = FluxBfs(b, outArray2);
-            Items.sand.description=bs.size+" c: "+connectFlux(b,outArray1,flux).size;
-            for(Building n:bs){
+        if(pullFlux&& capacity> 0 && flux.fluxAmount<retain){
+            for(int i=0;i<flux.graph.all.size;i++){
+                var n = flux.graph.all.get(i);
+                if(n == b)continue;
                 FluxModule nflux =  flux(n);
                 ConsumeFlux ncons = getConsume(n);
-                if(nflux.fluxAmount>ncons.retain){
+                if(nflux.fluxAmount>ncons.retain && flux.fluxAmount<retain){
                     float amount = Math.min(nflux.fluxAmount-ncons.retain,capacity-flux.fluxAmount);
                     flux.fluxAmount+=amount;
                     nflux.fluxAmount-=amount;
                 }
             }
-        }else{
-            if(Items.coal.description.length()>500)Items.coal.description = "";
-            Items.coal.description += "\nnot poss"+timer.get(0,12) + pullFlux + (capacity> 0) + (flux.fluxAmount<retain);
         }
     }
 
@@ -215,7 +216,6 @@ public class ConsumeFlux extends Consume {
     public void trigger(Building b) {
         if(!shouldConsumeFlux(b))return;
         FluxModule flux =  flux(b);
-        fff=flux;
         flux.fluxAmount+=produceAmount;
         flux.fluxAmount-=usage;
     }
@@ -235,10 +235,10 @@ public class ConsumeFlux extends Consume {
         out.clear();
         if(flux==null)return out;
         self.updateProximity();
-        for(Building other : self.proximity) {
+        for(int i=0;i<self.proximity.size;i++) {
+            var other = self.proximity.get(i);
             if (other != null && ConsumeFlux.flux(other)!=null && other.team == self.team) {
                 out.add(other);
-                flux.links.addUnique(other.pos());
             }
         }
         Items.silicon.description = ""+flux.links.size;

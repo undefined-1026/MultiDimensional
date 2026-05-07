@@ -2,29 +2,21 @@ package mDimension.world.flux;
 
 import arc.Core;
 import arc.graphics.Color;
-import arc.graphics.g2d.Draw;
-import arc.graphics.g2d.Lines;
 import arc.graphics.g2d.TextureRegion;
 import arc.math.Angles;
-import arc.math.Mathf;
-import arc.math.geom.Geometry;
+import arc.math.geom.Point2;
 import arc.struct.Seq;
-import arc.util.Interval;
 import arc.util.Tmp;
+import arc.util.io.Writes;
 import mDimension.consumers.ConsumeFlux;
 import mDimension.consumers.modules.FluxModule;
 import mindustry.content.Items;
 import mindustry.core.UI;
 import mindustry.gen.Building;
 import mindustry.graphics.Drawf;
-import mindustry.graphics.Pal;
 import mindustry.ui.Bar;
 import mindustry.world.Tile;
-import mindustry.world.blocks.power.BeamNode;
-import mindustry.world.consumers.Consume;
 import mindustry.world.meta.Env;
-
-import java.util.Arrays;
 
 import static mindustry.Vars.tilesize;
 import static mindustry.Vars.world;
@@ -38,7 +30,6 @@ public class FluxNode extends FluxBlock {
 
     public TextureRegion laser;
     public TextureRegion laserEnd;
-    private Interval timer = new Interval();
     public FluxNode(String name){
         super(name);
         configurable = true;
@@ -63,7 +54,7 @@ public class FluxNode extends FluxBlock {
             Color color = Color.valueOf("F090F0");
             return new Bar(
                     () -> {
-                        return Core.bundle.get("bar.fluxIcon")+":"+UI.formatAmount((long)b.fluxAmount);
+                        return Core.bundle.get("bar.fluxIcon")+UI.formatAmount((long)b.fluxAmount);
                     },
                     () -> color,
                     () -> ((int) (b.fluxAmount) / (b.cap))
@@ -104,7 +95,6 @@ public class FluxNode extends FluxBlock {
                 for(Building other : b.proximity) {
                     if (other != null && ConsumeFlux.flux(other)!=null && flux != null && other.team == b.team) {
                         out.add(other);
-                        flux.links.addUnique(other.pos());
                     }
                 }
                 Items.silicon.description = ""+flux.links.size;
@@ -153,7 +143,8 @@ public class FluxNode extends FluxBlock {
 
 
     public class FluxNodeBuild extends Building{
-        public Tile[] linkes = new Tile[4];
+        public Point2[] links = new Point2[]{new Point2(-1,-1),new Point2(-1,-1),new Point2(-1,-1),new Point2(-1,-1)};
+        public Building[] linkBuild = new Building[4];
         public float fluxAmount = 0f;
         public float cap =0;
         public int overloads = 0,fusings = 0;
@@ -162,9 +153,12 @@ public class FluxNode extends FluxBlock {
         @Override
         public void updateTile() {
             super.updateTile();
+            FluxModule flux = ConsumeFlux.flux(this);
             float max = 0;
 
-            Arrays.fill(linkes,null);
+            for(Point2 p: links){
+                p.set(-1,-1);
+            }
             for(int i=0;i<4;i++){
                 switch (i){
                     case (0)-> Tmp.p1.set(1,1);
@@ -177,37 +171,41 @@ public class FluxNode extends FluxBlock {
                     Tmp.v1.set(tile.x + Tmp.p1.x*g,tile.y + Tmp.p1.y*g).scl(8);
                     Tile tilec = world.tile(tile.x + Tmp.p1.x*g,tile.y + Tmp.p1.y*g);
                     Building other = tilec.build;
-                    FluxModule flux = ConsumeFlux.flux(other);
-                    if (other instanceof FluxNodeBuild || flux!=null){
-                        flux.links.addUnique(pos());
-                        linkes[i] = tilec;
+                    FluxModule oflux = ConsumeFlux.flux(other);
+                    if (oflux!=null){
+                        oflux.links.addUnique(pos());
+                        linkBuild[i] = other;
+                        if(!(other instanceof FluxNodeBuild node) || node.id<this.id){
+                            links[i].set(tile.x + Tmp.p1.x*g,tile.y + Tmp.p1.y*g);
+                        }
                         break;
                     }
                 }
             }
 
-            if(timer.get(0,12)) {
-                float s1 = 0;
-                float s2 = 0;
-                int s3 = 0;
-                int s4 = 0;
-                int s5 = 0;
-                for (Building other : cons.FluxBfs(this, outArray)) {
-                    s5++;
-                    FluxModule oflux = ConsumeFlux.flux(other);
-                    ConsumeFlux ocons = ConsumeFlux.getConsume(other);
-                    if(oflux == null||ocons==null)continue;
-                    s1 += oflux.fluxAmount;
-                    s2 += ocons.capacity + ocons.bearingCapacity;
-                    s3 += oflux.fluxAmount > ocons.capacity ? 1 : 0;
-                    s4 += oflux.fusing ? 1 : 0;
-                }
-                fluxAmount = s1;
-                cap = s2;
-                overloads = s3;
-                fusings = s4;
-                builds = s5;
+            float s1 = 0;
+            float s2 = 0;
+            int s3 = 0;
+            int s4 = 0;
+            int s5 = 0;
+            Items.beryllium.description = flux.graph.all+"";
+            for (int i=0;i<flux.graph.all.size;i++) {
+                var other = flux.graph.all.get(i);
+                s5++;
+                FluxModule oflux = ConsumeFlux.flux(other);
+                ConsumeFlux ocons = ConsumeFlux.getConsume(other);
+                if(oflux == null||ocons==null)continue;
+                s1 += oflux.fluxAmount;
+                s2 += ocons.capacity + ocons.bearingCapacity;
+                s3 += oflux.fluxAmount > ocons.capacity ? 1 : 0;
+                s4 += oflux.fusing ? 1 : 0;
             }
+            fluxAmount = s1;
+            cap = s2;
+            overloads = s3;
+            fusings = s4;
+            builds = s5;
+
 
             updateClipRadius(20f + 8f*max);
         }
@@ -215,8 +213,8 @@ public class FluxNode extends FluxBlock {
         @Override
         public void draw() {
             super.draw();
-            for(Tile t:linkes){
-                if(t !=null)drawLaser(x,y,t.drawx(),t.drawy());
+            for(Point2 p: links){
+                if(p.x>0)drawLaser(x,y,p.x *tilesize,p.y*tilesize);
             }
 
         }

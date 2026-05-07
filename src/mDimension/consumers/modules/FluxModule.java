@@ -5,6 +5,7 @@ import arc.struct.Seq;
 import arc.util.io.Reads;
 import arc.util.io.Writes;
 import mDimension.consumers.ConsumeFlux;
+import mDimension.world.flux.FluxGraph;
 import mindustry.gen.Building;
 import mindustry.world.modules.BlockModule;
 
@@ -21,9 +22,7 @@ public class FluxModule extends BlockModule {
     // public float effectivity = 0f;
     public float fluxAmount = 0f;
     public boolean fusing = false;
-    public boolean dirty = true;
-    public Seq<Building> cacheBfs = new Seq<>();
-    //public FluxGraph graph = new FluxGraph();
+    public FluxGraph graph = new FluxGraph();
     public IntSeq links = new IntSeq();
 
     @Override
@@ -43,6 +42,7 @@ public class FluxModule extends BlockModule {
             links.add(read.i());
         }
         fluxAmount = read.f();
+        graph = new FluxGraph();
         if(Float.isNaN(fluxAmount) || Float.isInfinite(fluxAmount)) fluxAmount = 0f;
     }
 

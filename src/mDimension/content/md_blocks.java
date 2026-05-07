@@ -12,9 +12,12 @@ import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.Seq;
 import arc.util.Time;
+import arc.util.io.Reads;
+import arc.util.io.Writes;
 import mDimension.consumers.ConsumeFlux;
 import mDimension.consumers.ConsumeBeam;
 import mDimension.consumers.MultiRecipeConsume;
+import mDimension.consumers.modules.FluxModule;
 import mDimension.draw.DrawPiston;
 import mDimension.draw.DrawRotation;
 import mDimension.entity.EntityShield;
@@ -43,6 +46,7 @@ import mindustry.gen.Sounds;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Pal;
+import mindustry.io.TypeIO;
 import mindustry.type.Category;
 import mindustry.type.ItemStack;
 import mindustry.type.LiquidStack;
@@ -72,7 +76,7 @@ public class md_blocks {
     public static final String modname = "mdimension-";
     //region defined
     public static Block
-            aluminium_electrolysis_cell, al_alloy_smelting,infrared_laser,ultraviolet_laser,nihility_exciter,ngm_launch_pad,
+    small_silicon_arc_furnace,aluminium_electrolysis_cell, al_alloy_smelting,infrared_laser,ultraviolet_laser,nihility_exciter,ngm_launch_pad,
             ti_alloy_smelting, helium_factory, test2,diagonal_beam_merging_prism,
             water_pyrolyzer,carbon_fibre_binder,heavy_pulverizer,polymer_compressor,phase_adder,
     //distribution
@@ -101,18 +105,44 @@ public class md_blocks {
     public static void load() {
         loadAmmo();
         //region craft
+            small_silicon_arc_furnace = new GenericCrafter("small-silicon-arc-furnace"){{
+                requirements(Category.crafting, ItemStack.with(
+                        md_items.aluminium, 30,
+                        Items.graphite, 20
+                ));
+
+                consumeItem(Items.sand,3);
+                outputItem = new ItemStack(Items.silicon,2);
+                craftTime = (2f/1.8f)*60f;
+                ambientSound = Sounds.loopSmelter;
+                ambientSoundVolume = 0.12f;
+                consumePower(2.5f);
+                size = 2;
+                hasPower = true;
+                hasLiquids = false;
+                drawer = new DrawMulti(
+                        new DrawRegion("-bottom"),
+                        new DrawArcSmelt(){{
+                            flameRad *= 0.7f;
+                            circleSpace *= 0.7f;
+                            flameRadiusScl *= 0.7f;
+                            flameRadiusMag *= 0.7f;
+                            circleStroke *= 0.7f;
+
+                        }},
+                        new DrawRegion()
+                );
+            }};
             //region al_alloy_smelting 铝合金
             al_alloy_smelting = new GenericCrafter("al-alloy-smelting") {{
                     squareSprite = false;
-                    id = 1145;
                     health = 500;
                     armor = 3;
                     size = 3;
-                    buildTime = 3f;
                     requirements(Category.crafting, ItemStack.with(
-                            md_items.aluminium, 100,
-                            Items.lead, 120,
-                            Items.silicon, 80
+                            md_items.aluminium, 80,
+                            Items.copper, 80,
+                            Items.silicon, 60
                     ));
                     alwaysUnlocked = true;
                     craftEffect=new  MultiEffect(
@@ -135,7 +165,6 @@ public class md_blocks {
                     craftTime = 90f;
                     hasItems = true;
                     hasPower = true;
-                    isDuct = true;
 
 
                 }};
@@ -1936,11 +1965,26 @@ public class md_blocks {
                 capacity = 20;
                 bearingCapacity = 10;
                 retain = 10f;
-
-
             }});
             craftTime = 30f;
-        }};
+        }
+        public class TestBlockBuild extends TestBlock.TestBlockBuild{
+            @Override
+            public void write(Writes write) {
+                super.write(write);
+                FluxModule flux = ConsumeFlux.flux(this);
+                flux.write(write);
+            }
+
+            @Override
+            public void read(Reads read) {
+                super.read(read);
+                FluxModule flux = ConsumeFlux.flux(this);
+                flux.read(read);
+            }
+        }
+
+        };
         Block test1 = new FluxNode("node"){{
             requirements(Category.power,with());
             size = 1;
