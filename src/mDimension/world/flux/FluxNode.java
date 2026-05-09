@@ -188,7 +188,6 @@ public class FluxNode extends FluxBlock {
             int s3 = 0;
             int s4 = 0;
             int s5 = 0;
-            Items.beryllium.description = flux.graph.all+"";
             for (int i=0;i<flux.graph.all.size;i++) {
                 var other = flux.graph.all.get(i);
                 s5++;

@@ -115,4 +115,16 @@ public class FluxGraph {
 
     }
 
+    public void saveLoad(){
+        for(Building b:all){
+            Building nowb = world.build(b.pos());
+            FluxModule flux = flux(nowb);
+            if(flux!=null){
+                flux.graph = new FluxGraph();
+                flux.graph.init(nowb);
+            }
+        }
+        deprecate();
+    }
+
 }

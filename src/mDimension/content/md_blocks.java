@@ -1968,21 +1968,6 @@ public class md_blocks {
             }});
             craftTime = 30f;
         }
-        public class TestBlockBuild extends TestBlock.TestBlockBuild{
-            @Override
-            public void write(Writes write) {
-                super.write(write);
-                FluxModule flux = ConsumeFlux.flux(this);
-                flux.write(write);
-            }
-
-            @Override
-            public void read(Reads read) {
-                super.read(read);
-                FluxModule flux = ConsumeFlux.flux(this);
-                flux.read(read);
-            }
-        }
 
         };
         Block test1 = new FluxNode("node"){{

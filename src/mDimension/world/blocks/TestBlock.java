@@ -1,6 +1,11 @@
 package mDimension.world.blocks;
 
 import arc.func.Cons;
+import arc.util.io.Reads;
+import arc.util.io.Writes;
+import mDimension.consumers.ConsumeFlux;
+import mDimension.consumers.modules.FluxModule;
+import mindustry.content.Items;
 import mindustry.gen.Building;
 import mindustry.world.blocks.production.GenericCrafter;
 
@@ -31,6 +36,23 @@ public class TestBlock extends GenericCrafter {
         public void updateTile() {
             super.updateTile();
             update.get(this);
+        }
+
+        @Override
+        public void write(Writes write) {
+            super.write(write);
+            FluxModule flux = ConsumeFlux.flux(this);
+            flux.write(write);
+        }
+
+        @Override
+        public void read(Reads read, byte revision) {
+            super.read(read,revision);
+            Items.beryllium.description = "start:\n";
+            FluxModule flux = ConsumeFlux.flux(this);
+            Items.beryllium.description +=flux +"\n\n\n";
+            flux.read(read);
+            Items.beryllium.description +=flux +"\n\n\n";
         }
     }
 }

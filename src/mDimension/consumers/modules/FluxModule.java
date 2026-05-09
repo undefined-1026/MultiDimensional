@@ -27,25 +27,19 @@ public class FluxModule extends BlockModule {
 
     @Override
     public void write(Writes write){
-        write.s(links.size);
-        for(int i = 0; i < links.size; i++){
-            write.i(links.get(i));
-        }
         write.f(fluxAmount);
     }
 
     @Override
     public void read(Reads read){
         links.clear();
-        short amount = read.s();
-        for(int i = 0; i < amount; i++){
-            links.add(read.i());
-        }
         fluxAmount = read.f();
         graph = new FluxGraph();
         if(Float.isNaN(fluxAmount) || Float.isInfinite(fluxAmount)) fluxAmount = 0f;
     }
 
-
-
+    @Override
+    public String toString() {
+        return super.toString()+"\nfluxAmount:"+fluxAmount+"\n";
+    }
 }

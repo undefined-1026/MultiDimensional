@@ -70,7 +70,7 @@ public class MDEvents {
         });
 
         Events.on(EventType.SaveLoadEvent.class,e->{
-            updateGraphs();
+            updateGraphs(true);
         });
 
 
@@ -79,6 +79,9 @@ public class MDEvents {
     }
 
     public static void updateGraphs(){
+        updateGraphs(false);
+    }
+    public static void updateGraphs(boolean loadSave){
         if(!Vars.state.isPaused()) {
             int ind = 0;
             Items.coal.description = "";
@@ -88,6 +91,9 @@ public class MDEvents {
                 } else if (graph.init) {
                     Items.coal.description += "\n\n\nindex:" + ind + " allSize:" + graphs.size + "\n";
                     graph.update();
+                    if(loadSave){
+                        graph.saveLoad();
+                    }
                 }
                 ind++;
             }
