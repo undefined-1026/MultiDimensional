@@ -58,13 +58,13 @@ public class MDEvents {
         });
 
         Events.on(EventType.PayloadDropEvent.class,e->{
-            if(e.build!=null){
+            if(e.build!=null && ConsumeFlux.hasConsume(e.build)){
                 updateGraphs();
             }
         });
 
         Events.on(EventType.PickupEvent.class,e->{
-            if(e.build!=null){
+            if(e.build!=null && ConsumeFlux.hasConsume(e.build)){
                 updateGraphs();
             }
         });

@@ -1,6 +1,7 @@
 package mDimension.consumers;
 
 import arc.Core;
+import arc.func.Boolc;
 import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Lines;
@@ -26,6 +27,8 @@ import mindustry.world.Block;
 import mindustry.world.consumers.Consume;
 
 import java.rmi.server.UID;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 import static arc.math.Angles.randLenVectors;
 import static mindustry.Vars.world;
@@ -51,6 +54,10 @@ public class ConsumeFlux extends Consume {
     public boolean isWillFusing = true;
     public boolean pullFlux = true;
     public boolean isNode = false;
+    public boolean isbatter = false;
+    public BiPredicate<FluxModule,ConsumeFlux> canPull = (mod,cons)-> {
+        return cons.isbatter || mod.fluxAmount > cons.retain;
+    };
 
     public boolean alwaysDissipation = false;
     public float  dissipationSpeed = 0.3f/60f;
@@ -65,19 +72,6 @@ public class ConsumeFlux extends Consume {
         });
     });
     public float effectChangePerTile = 0.08f;
-
-    public float getProduceAmount(Building b) {
-        return produceAmount * b.efficiency *b.delta();
-    }
-    public float getUsage(Building b){
-        return usage  * b.efficiency *b.delta();
-    }
-    public float getCapacity(){
-        return capacity;
-    }
-    public float getBearingCapacity() {
-        return bearingCapacity;
-    }
 
     public ConsumeFlux(){
     }
@@ -135,6 +129,7 @@ public class ConsumeFlux extends Consume {
         return b.findConsumer(c->c instanceof ConsumeFlux);
     };
     public static boolean hasConsume(Building b){
+        if(b == null)return false;
         return b.block.findConsumer(c->c instanceof ConsumeFlux)!=null;
     };
     public static boolean hasConsume(Block b){
@@ -203,10 +198,16 @@ public class ConsumeFlux extends Consume {
                 if(n == b)continue;
                 FluxModule nflux =  flux(n);
                 ConsumeFlux ncons = getConsume(n);
-                if(nflux.fluxAmount>ncons.retain && flux.fluxAmount<retain){
-                    float amount = Math.min(nflux.fluxAmount-ncons.retain,capacity-flux.fluxAmount);
+                if(canPull.test(nflux,ncons) && flux.fluxAmount<retain){
+                    float amount =0;
+                    if(!isbatter){
+                        amount = Math.min(nflux.fluxAmount-ncons.retain,capacity-flux.fluxAmount);
+                    }else{
+                        amount = Math.min(nflux.fluxAmount,capacity-flux.fluxAmount);
+                    }
                     flux.fluxAmount+=amount;
                     nflux.fluxAmount-=amount;
+                    if(flux.fluxAmount>=retain)break;
                 }
             }
         }

@@ -62,6 +62,7 @@ import mindustry.world.blocks.payloads.Constructor;
 import mindustry.world.blocks.power.PowerNode;
 import mindustry.world.blocks.production.*;
 import mindustry.world.blocks.storage.StorageBlock;
+import mindustry.world.blocks.units.UnitFactory;
 import mindustry.world.consumers.ConsumePower;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
@@ -100,7 +101,7 @@ public class md_blocks {
     //payload
     small_payload_conveyor,
             small_payload_router,
-    test3,ammo_constructor;
+    test3,ammo_constructor,infantry_factory,airborne_vessels_factory;
     //endregion
     public static void load() {
         loadAmmo();
@@ -515,6 +516,7 @@ public class md_blocks {
             liquidOutputDirections = new int[]{1, 3};
         }};
         test5 = new MultiRecipeCrafter("test5"){{
+            drawDisabled = true;
             requirements(Category.crafting,with());
             consumeRecipes(new MultiRecipeConsume(
                     new MultiRecipeConsume.Recipe(){{
@@ -735,13 +737,14 @@ public class md_blocks {
         //endregion
         //region distribution
             light_duct_bridge = new RadiusItemBridge("al-alloy-duct-bridge") {{
-                requirements(Category.distribution, with(Items.silicon, 10, Items.titanium, 10, md_items.al_alloy, 10));
+                requirements(Category.distribution, with(Items.silicon, 10, Items.titanium, 10));
                 arrowSpacing = 6f;
                 bridgeWidth = 8;
                 arrowTimeScl = 15;
                 health = 200;
                 armor = 2;
                 range = 6;
+                hasPower = false;
                 transportTime = 4f;
                 pulse = true;
                 buildCostMultiplier = 3f;
@@ -788,7 +791,7 @@ public class md_blocks {
 
             }};
 
-            stack_rail_conveyor = new StackConveyor("stack-rail-conveyor") {{
+            stack_rail_conveyor = new MulitStackConveyor("stack-rail-conveyor") {{
                 requirements(Category.distribution, with(md_items.aluminium, 1, md_items.al_alloy, 1, Items.silicon, 1));
                 health = 210;
                 armor = 3;
@@ -799,6 +802,7 @@ public class md_blocks {
         //region liquid
         liquid_unloader = new LiquidUnloader("liquid-unloader"){{
             requirements(Category.liquid,with());
+            connectedPower = true;
             rotate = true;
             rotateDraw = false;
             speed = 2;
@@ -816,6 +820,7 @@ public class md_blocks {
             armor = 2;
             range = 6;
             pulse = true;
+            hasPower = false;
             liquidCapacity = 200f;
             buildCostMultiplier = 3f;
             researchCostMultiplier = 0.3f;
@@ -1564,6 +1569,7 @@ public class md_blocks {
                 rotateSpeed = 60/60f;
                 shootCone = 360f;
                 unitSort = UnitSorts.strongest;
+                drawDisabled = true;
                 consume(new ConsumeBeam(80,md_beams.near_infrared_ligth));
 
             }};
@@ -1684,7 +1690,6 @@ public class md_blocks {
                                 moves.add(new PartMove(PartProgress.warmup,13.2f/4,4f/4,3));
                                 moves.add(new PartMove(PartProgress.recoil,6f/4,-4f/4,0));
                             }},
-
                             new ShapePart(){{
                                 progress = PartProgress.warmup.delay(0.2f);
                                 color = haloColor;
@@ -1956,6 +1961,27 @@ public class md_blocks {
             filter = Seq.with(md_blocks.heavy_ammo);
 
         }};
+        infantry_factory = new UnitFactory("infantry-factory"){{
+            requirements(Category.units, with(Items.silicon, 150, md_items.aluminium, 180, Items.graphite, 120));
+            plans = Seq.with(
+                    new UnitPlan(md_UnitTypes.captive, 60f * 30, with(Items.silicon, 50, md_items.aluminium,55))
+            );
+            size = 3;
+            regionSuffix = "-ammo";
+            consumePower(1.2f);
+            researchCostMultiplier = 0.5f;
+        }};
+
+        airborne_vessels_factory = new UnitFactory("airborne-vessels-factory"){{
+            requirements(Category.units, with(Items.silicon, 170, md_items.polymer, 150, Items.titanium, 120));
+            plans = Seq.with(
+                    new UnitPlan(md_UnitTypes.shimmer, 60f * 28, with(Items.silicon, 45, md_items.polymer,80))
+            );
+            size = 3;
+            regionSuffix = "-ammo";
+            consumePower(1.2f);
+            researchCostMultiplier = 0.5f;
+        }};
         //endregion
 
         Block test = new TestBlock("testBlock"){{
@@ -1967,6 +1993,7 @@ public class md_blocks {
                 retain = 10f;
             }});
             craftTime = 30f;
+            drawDisabled = true;
         }
 
         };
@@ -1974,16 +2001,18 @@ public class md_blocks {
             requirements(Category.power,with());
             size = 1;
             enableDrawStatus = false;
+            drawDisabled = true;
         }};
         Block test2 = new FluxBlock("batter"){{
             requirements(Category.power,with());
             size = 2;
             consume(new ConsumeFlux(){{
                 capacity = 100;
-                retain = 80;
+                retain = 100;
                 dissipationSpeed = 0.1f/60f;
             }});
             enableDrawStatus = false;
+            drawDisabled = true;
         }};
     }
     public static void loadAmmo(){

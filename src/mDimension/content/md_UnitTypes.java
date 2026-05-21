@@ -12,12 +12,16 @@ import mDimension.entity.bullet.BallLightningBulletType;
 import mDimension.tool.Drawff;
 import mDimension.world.blocks.DepicilonUnitType;
 import mDimension.world.blocks.md_Fx;
+import mDimension.world.weapons.DestoryWeapon;
 import mDimension.world.weapons.OverdriveWeapon;
 import mindustry.ai.types.BuilderAI;
 import mindustry.content.Fx;
+import mindustry.content.UnitTypes;
+import mindustry.entities.Mover;
 import mindustry.entities.abilities.ShieldRegenFieldAbility;
 import mindustry.entities.abilities.StatusFieldAbility;
 import mindustry.entities.bullet.BasicBulletType;
+import mindustry.entities.bullet.BulletType;
 import mindustry.entities.bullet.ContinuousFlameBulletType;
 import mindustry.entities.bullet.ShrapnelBulletType;
 import mindustry.entities.effect.MultiEffect;
@@ -223,13 +227,13 @@ public class md_UnitTypes {
             softShadowScl = 0.7f;
 
             drag = 0.08f;
-            speed = 2f;
-            rotateSpeed = 6f;
+            speed = 2.2f;
+            rotateSpeed = 8f;
 
             accel = 0.07f;
 
-            health = 650f;
-            armor = 2f;
+            health = 300f;
+            armor = 4f;
             hitSize = 11f;
 
             engineSize = 2f;
@@ -251,7 +255,6 @@ public class md_UnitTypes {
                 range = 25f;
                 alwaysContinuous = true;
                 mirror = false;
-                top = false;
                 shootY = 0f;
                 x = 0;
                 y = 2f;
@@ -265,7 +268,6 @@ public class md_UnitTypes {
                     moveRot = -18f;
                     moveY = 0.8f;
                     moveX = 0f;
-                    under = true;
                     mirror = true;
                 }});
                 shootSound = Sounds.none;
@@ -288,6 +290,40 @@ public class md_UnitTypes {
                             Color.valueOf("E8AC58").a(0.65f),
                             Color.valueOf("FFDB78").a(0.85f),
                             Color.white};
+                }};
+            }});
+            weapons.add(new DestoryWeapon(){{
+                shootOnDeath = true;
+                shootOnDeathEffect = Fx.none;
+                inaccuracy = 360f;
+
+                targetUnderBlocks = false;
+                reload = 24f;
+                shootCone = 180f;
+                ejectEffect = Fx.none;
+                shootSound = Sounds.explosionCrawler;
+                shootSoundVolume = 0.4f;
+                x = shootY = 0f;
+                mirror = false;
+                display = false;
+                bullet = new BulletType(){{
+                    collidesTiles = false;
+                    collides = false;
+                    despawnHit = true;
+                    hitColor = Color.valueOf("FFEF97");
+                    despawnEffect = new MultiEffect(md_Fx.spark(25f,15,7*8,16f),
+                            md_Fx.spikeWaveColor(22f,5*8f,2f,10,0.4f,2.5f),
+                            md_Fx.polyStarExplosion(20,3,9*8,5f,0,true)
+                    );
+
+                    hitEffect = Fx.pulverize;
+                    speed = 0f;
+                    splashDamageRadius = 6.8f*8f;
+                    instantDisappear = true;
+                    splashDamage = 120;
+                    buildingDamageMultiplier =1f;
+                    killShooter = true;
+                    hittable = false;
                 }};
             }});
         }};

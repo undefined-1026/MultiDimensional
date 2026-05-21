@@ -48,11 +48,7 @@ public class TestBlock extends GenericCrafter {
         @Override
         public void read(Reads read, byte revision) {
             super.read(read,revision);
-            Items.beryllium.description = "start:\n";
             FluxModule flux = ConsumeFlux.flux(this);
-            Items.beryllium.description +=flux +"\n\n\n";
-            flux.read(read);
-            Items.beryllium.description +=flux +"\n\n\n";
-        }
+            flux.read(read);}
     }
 }

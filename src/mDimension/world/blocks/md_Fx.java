@@ -601,6 +601,24 @@ public class md_Fx {
             Draw.reset();
         });
     }
+    /** len is 0 to 1*/
+    public static Effect spikeWaveColor(float life, float radius, float stroke,int amount,float len,float width) {
+        return new Effect(life, e -> {
+            color(e.color);
+            stroke(e.fout() * stroke);
+            float radd = e.finpow() * (radius);
+            Lines.circle(e.x, e.y, radd);
+
+            rand.setSeed(e.id);
+            for(int i=0;i<amount;i++){
+                float angle = rand.random(360f);
+                float length = rand.nextFloat() * len;
+                v.trns(angle,radd);
+                Drawf.tri(e.x+v.x,e.y+v.y,width * e.fout(),length * radd,angle +180f);
+            }
+            Draw.reset();
+        });
+    }
 
     public static Effect waveHitColor(float life, float radius, float lineSize, float stroke, float alpha) {
         return new Effect(life, e -> {
@@ -792,6 +810,17 @@ public class md_Fx {
                 lx = cx;ly =cy;
             }
             Lines.line(lx,ly,tx,ty,false);
+        });
+    }
+
+    public static Effect spark(float life,int amount,float rad,float lineLen){
+        return new Effect(life,e->{
+            color(e.color);
+            stroke(e.fout() *2f);
+            randLenVectors(e.id, amount, e.finpow() * rad, e.rotation, 360f, (x, y) -> {
+                float ang = Mathf.angle(x, y);
+                lineAngle(e.x + x, e.y + y, ang, e.fout() * lineLen + 1f);
+            });
         });
     }
 

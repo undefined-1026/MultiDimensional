@@ -8,18 +8,16 @@ import mindustry.content.StatusEffects;
 import mindustry.graphics.CacheLayer;
 import mindustry.graphics.Shaders;
 import mindustry.world.Block;
-import mindustry.world.blocks.environment.Floor;
-import mindustry.world.blocks.environment.OreBlock;
-import mindustry.world.blocks.environment.Prop;
-import mindustry.world.blocks.environment.StaticWall;
+import mindustry.world.blocks.environment.*;
 import mindustry.world.meta.Attribute;
 
+import static mDimension.content.md_blocks.modname;
 public class md_environment {
     public static Block
             crystallization_oil_deep,crystallization_oil,magnetic_shale_wall,magnetic_shale_stone,brownSandFloor,brownSandWall,
     light_shale_wall,pure_light_shale_wall,darkCrystallineStoneWall,darkRedStoneWall,
             inlayMetalTiles4,darkCrystalFloor,darkCrystallineStone,darkDenseRedStone,darkRedStone,
-            light_shale_floor,pure_light_shale_floor,yellow_ice,yellow_ice_snow,
+            light_shale_floor,pure_light_shale_floor,yellow_ice,yellow_ice_snow,depthTile1,depthTile2,depthTile3,depthTile4,depthTile5,
     //ore
     oreAluminium,WallOreTitanium,oreGraphite,WallOreCopper,
     //props
@@ -118,13 +116,49 @@ public class md_environment {
             pure_light_shale_floor.asFloor().wall = this;
         }};
 
-        inlayMetalTiles4 = new FloorPro("inlay-metal-tiles-1"){{
+        inlayMetalTiles4 = new Floor("inlay-metal-tiles-1"){{
             autotile = true;
             drawEdgeOut = false;
             drawEdgeIn = false;
             mapColor = Color.valueOf("FFDB82");
             this.asFloor().wall = Blocks.metalWall3;
         }};
+
+        depthTile1 = new Floor("depth-tile-1"){{
+            autotile = true;
+            drawEdgeOut = false;
+            drawEdgeIn = false;
+            this.asFloor().wall = Blocks.metalWall3;
+        }};
+
+        depthTile2 = new Floor("depth-tile-2"){{
+            autotile = true;
+            drawEdgeOut = false;
+            drawEdgeIn = false;
+            this.asFloor().wall = Blocks.metalWall3;
+        }};
+
+        depthTile3 = new Floor("depth-tile-3"){{
+            autotile = true;
+            drawEdgeOut = false;
+            drawEdgeIn = false;
+            this.asFloor().wall = Blocks.metalWall3;
+        }};
+
+        depthTile4 = new Floor("depth-tile-4"){{
+            autotile = true;
+            drawEdgeOut = false;
+            drawEdgeIn = false;
+            this.asFloor().wall = Blocks.metalWall3;
+        }};
+
+        depthTile5 = new Floor("depth-tile-5"){{
+            autotile = true;
+            drawEdgeOut = false;
+            drawEdgeIn = false;
+            this.asFloor().wall = Blocks.metalWall3;
+        }};
+
 
         darkCrystalFloor = new Floor("dark-crystal-floor"){{
             variants = 4;
@@ -164,7 +198,6 @@ public class md_environment {
             variants = 3;
             darkCrystalFloor.asFloor().decoration = this;
         }};
-
     }
 
     public static void loadCacheLayer(){

@@ -74,10 +74,6 @@ public class ConsumeBeam extends Consume {
 
     @Override
     public float efficiency(Building b) {
-        Items.copper.description = "";
-        for(ObjectMap.Entry<Building,LaserModule> e:laserDataMap){
-            Items.copper.description+="\n key"+e.key + "val:"+e.value;
-        }
         if (b.dead) {
             laserDataMap.remove(b);
             return 0;
@@ -86,7 +82,8 @@ public class ConsumeBeam extends Consume {
             laserDataMap.put(b, new LaserModule());
         }
         float power = 0;
-        for (md_LaserData laserData : laserDataMap.get(b).laserDatas) {
+        for(int i=0;i<laserDataMap.get(b).laserDatas.size;i++) {
+            md_LaserData laserData = laserDataMap.get(b).laserDatas.get(i);
             if (
                     (minWavelength < 0 || minWavelength <= laserData.wavelengthLevel) &&
                             (maxWavelength < 0 || laserData.wavelengthLevel <= maxWavelength) &&
@@ -125,15 +122,14 @@ public class ConsumeBeam extends Consume {
     }
 
     public static void free(){
-        ObjectMap<Building,LaserModule> allcopy;
-        for (ConsumeBeam c:allConsume) {
-            allcopy = c.laserDataMap.copy();
-            for (ObjectMap.Entry e : allcopy) {
-                if (e.key instanceof Building b && (b.dead || b.health < 0)) {
-                    c.laserDataMap.remove(b);
+        for (int i=0;i<allConsume.size;i++) {
+            ConsumeBeam c = allConsume.get(i);
+            for (ObjectMap.Entry<Building,LaserModule> e : c.laserDataMap) {
+                if (e.key.dead) {
+                    c.laserDataMap.remove(e.key);
                 }
             }
-            allcopy.clear();
+            c.laserDataMap.clear();
         }
     }
 

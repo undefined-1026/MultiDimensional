@@ -38,16 +38,13 @@ import static mindustry.Vars.headless;
  */
 public class MultiPointLaserBullet extends BulletType {
 
-    // 激光纹理相关（保留你的自定义配置）
     public String sprite = "point-laser";
     public String spriteTop = "";
     public TextureRegion laser, laserEnd, laserTop, point;
 
-    // 新增：激光起点向量（你的自定义修改）
     public Vec2[] beginVec2;
     public float[] beginPos;
 
-    // 新增：无目标时的巡逻逻辑（你的自定义修改）
     public void idleAct(Vec2 v, int i, Bullet b) {
         v.set(
                 Mathf.approachDelta(
@@ -386,7 +383,6 @@ public class MultiPointLaserBullet extends BulletType {
 
     private void updateTrail(Bullet b, MultiPointLaserModule module) {
         if (headless || trailLength <= 0) return;
-        // 双重校验：index 范围 + 数组非空
         if (module.index < 0 || module.index >= module.trails.length || module.trails == null) {
             return;
         }
@@ -464,9 +460,7 @@ public class MultiPointLaserBullet extends BulletType {
     @Override
     public void updateBulletInterval(Bullet b) {}
 
-    /**
-     * 模块类：保留你的初始化+新增锁定目标数组
-     */
+
     public static class MultiPointLaserModule {
         public MultiPointLaserBullet type;
         public Vec2[] aims;

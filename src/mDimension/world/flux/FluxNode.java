@@ -142,7 +142,7 @@ public class FluxNode extends FluxBlock {
     }
 
 
-    public class FluxNodeBuild extends Building{
+    public class FluxNodeBuild extends FluxBlockBuild{
         public Point2[] links = new Point2[]{new Point2(-1,-1),new Point2(-1,-1),new Point2(-1,-1),new Point2(-1,-1)};
         public Building[] linkBuild = new Building[4];
         public float fluxAmount = 0f;
