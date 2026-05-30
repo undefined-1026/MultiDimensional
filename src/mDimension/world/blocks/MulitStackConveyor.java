@@ -230,8 +230,8 @@ public class MulitStackConveyor extends StackConveyor {
             }
             if(amount >1) {
                 for (int i = 0; i < amount; i++) {
-                    Tmp.v2.trns((360f / amount) * i + (amount-1) * 45, 1f + amount * 0.05f);
-                    float sizef = size * Mathf.sqrt(1f/(amount*1.15f));
+                    Tmp.v2.trns((360f / amount) * i + (amount-1) * 45, 1f + amount * 0.08f);
+                    float sizef = size * Mathf.sqrt(1f/(amount*0.8f));
                     Draw.rect(drawItems[i].fullIcon, x +Tmp.v2.x,y+Tmp.v2.y,sizef,sizef,0);
                 }
             }else{

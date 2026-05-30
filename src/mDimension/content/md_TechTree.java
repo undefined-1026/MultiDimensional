@@ -5,6 +5,7 @@ import arc.struct.Seq;
 import static mDimension.content.md_items.*;
 import static mDimension.content.md_liquids.*;
 import static mDimension.content.md_blocks.*;
+import static mDimension.content.md_UnitTypes.*;
 import static mindustry.content.Items.*;
 import mindustry.content.TechTree;
 import mindustry.ctype.UnlockableContent;
@@ -20,46 +21,78 @@ public class md_TechTree {
 
     public static void load(){
         md_Planets.depicilon.techTree = nodeRoot("depicilon",md_blocks.coreSteady,()->{
-
-            node(md_blocks.aluminium_electrolysis_cell,()->{
-                node(md_blocks.al_alloy_smelting);
-
+            node(md_blocks.al_alloy_smelting,Seq.with(new Objectives.SectorComplete(md_SectorPresets.starting_point)),()->{
+               node(ti_alloy_smelting);
             });
-
             node(md_blocks.light_duct,()->{
                 node(md_blocks.armored_light_duct,()->{
                     node(md_blocks.stack_rail_conveyor);
                 });
                 node(md_blocks.multiway_unloader);
                 node(md_blocks.light_duct_bridge);
+                node(light_sorter,()->{
+                    node(light_invertedSorter);
+                    node(light_overflowGate);
+                    node(light_underflowGate);
+                });
             });
+            node(small_impact_drill,()->{
+                node(heavy_pulverizer,()->{
+                    node(small_silicon_arc_furnace,()->{
 
-            node(beam_bore,()->{
-                node(small_impact_drill);
-            });
-
-            node(md_blocks.ngm_launch_pad);
-
-            node(fracture,Seq.with(new Objectives.Produce(ti_alloy)),()->{});
-
-            nodeProduce(bauxite,()->{
-                nodeProduce(aluminium,()->{
-                    nodeProduce(al_alloy,()->{
-                        nodeProduce(ti_alloy,()->{
-                            nodeProduce(dimension_fluid,()->{
-                                nodeProduce(polymorphic_crystal);
-                            });
-                            nodeProduce(plasma);
-                        });
-                        nodeProduce(polymer);
                     });
                 });
+                node(beam_bore,()->{
 
+                });
             });
-            nodeProduce(titanium);
-            nodeProduce(copper);
-            nodeProduce(graphite);
-            nodeProduce(silicon);
+            node(crack,()->{
+                node(fracture);
+                node(ionize);
+            });
+            node(aluminium_wall,()->{
+                node(aluminium_wall_large);
+            });
+            node(magnetic_node,()->{
+                node(graphite_combustion_chamber);
+                node(internal_energy_pile);
+            });
+
+
+
+            nodeProduce(sand,()->{
+                nodeProduce(bauxite,()->{
+                    nodeProduce(aluminium,()->{
+                        nodeProduce(silicon,()->{
+                            nodeProduce(al_alloy,()->{
+                                nodeProduce(polymer);
+                            });
+                        });
+                    });
+                });
+                nodeProduce(titanium,()->{
+                    nodeProduce(ti_alloy,()->{
+                        nodeProduce(dimension_fluid,()->{
+                            nodeProduce(polymorphic_crystal);
+                        });
+                        nodeProduce(plasma);
+                    });
+                });
+                nodeProduce(copper);
+                nodeProduce(graphite);
+            });
+            node(infantry_factory,()->{
+                node(army_anchor_point_reconstructor);
+                node(airborne_vessels_factory,()->{
+                    node(army_anchor_point_reconstructor);
+                });
+
+                node(captive,ItemStack.with(),()->{});
+                node(shimmer,ItemStack.with(polymer,500,silicon,800),()->{});
+            });
+
+
+
         });
     }
 
@@ -79,7 +112,9 @@ public class md_TechTree {
         roots.add(root);
         return root;
     }
-
+    public static TechTree.TechNode node(UnlockableContent content,Seq<Objectives.Objective>objectives){
+        return node(content, content.researchRequirements(),objectives,()->{});
+    }
     public static TechTree.TechNode node(UnlockableContent content, Runnable children){
         return node(content, content.researchRequirements(), children);
     }

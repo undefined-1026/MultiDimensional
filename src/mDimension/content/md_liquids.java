@@ -3,13 +3,12 @@ import arc.graphics.Color;
 import mDimension.world.blocks.ployCellLiquid;
 import mindustry.content.StatusEffects;
 import mindustry.type.*;
-import mDimension.world.blocks.md_Fx;
 
 import static mindustry.content.Liquids.water;
 
 public class md_liquids {
     public static Liquid
-            helium,dimension_fluid , crystallization_oil;
+            helium,dimension_fluid , crystallization_oil , ammonia;
     public static void load(){
 
         helium = new Liquid("helium",new Color(0xffcfffff)){{
@@ -21,7 +20,17 @@ public class md_liquids {
             incinerable = false;
             boilPoint = -1f;
             hidden = false;
-            alwaysUnlocked = true;
+        }};
+
+        ammonia = new Liquid("ammonia",new Color(0xFFE28AFF)){{
+            gas = true;
+            flammability = 0.2f;
+            explosiveness = 0.1f;
+            blockReactive = false;
+            coolant = false;
+            incinerable = true;
+            boilPoint = -1f;
+            hidden = false;
         }};
 
         dimension_fluid = new ployCellLiquid("dimension-fluid",new Color(0xFFD188ff),4,4){{
@@ -34,7 +43,6 @@ public class md_liquids {
             viscosity = 0.85f;
             temperature = 0.1f;
             heatCapacity = 1.8f;
-            alwaysUnlocked = true;
             vaporEffect = md_Fx.dimension_vapor;
             particleEffect = md_Fx.dimension_vapor_small;
             colorFrom = Color.valueOf("FFB578");

@@ -13,36 +13,32 @@ public class md_items {
             hardness = 0;
             cost = 0.5f;
             alwaysUnlocked = true;
+            hidden = true;
         }};
         aluminium = new Item("aluminium",Color.valueOf("ffeded")){{
             healthScaling = 0.3f;
             hardness = 1;
             cost = 0.4f;
-            alwaysUnlocked = true;
         }};
         al_alloy = new Item("al-alloy",Color.valueOf("ededff")){{
             healthScaling = 0.5f;
             hardness = 2;
             cost = 0.7f;
-            alwaysUnlocked = true;
         }};
         ti_alloy = new Item("ti-alloy",Color.valueOf("9373FF")){{
             healthScaling = 0.8f;
             hardness = 3;
             cost = 2f;
-            alwaysUnlocked = true;
         }};
         polymer = new Item("polymer",Color.valueOf("FFE399")){{
             flammability = 0.6f;
             cost = 0.3f;
             hardness = 0;
-            alwaysUnlocked = true;
         }};
         carbon_fibre = new Item("carbon-fibre",Color.valueOf("303030")){{
             flammability = 0.2f;
             cost = 1.5f;
             hardness = 1;
-            alwaysUnlocked = true;
         }};
         polymorphic_crystal = new Item("polymorphic-crystal",Color.valueOf("F8D09E")){{
             frames = 10;
@@ -53,7 +49,6 @@ public class md_items {
             radioactivity = 3.25f;
             cost = 3.5f;
             hardness = 2;
-            alwaysUnlocked = true;
 
         }};
         plasma = new Item("plasma",Color.valueOf("ADB0FF")){{
@@ -64,7 +59,6 @@ public class md_items {
             explosiveness = 2f;
             cost = 3f;
             hardness  = 0;
-            alwaysUnlocked = true;
         }};
         light_ceramic = new Item("light-ceramic",Color.valueOf("EFFF87")){{
             frames = 2;
@@ -74,7 +68,6 @@ public class md_items {
             explosiveness = 0.8f;
             cost = 2.5f;
             hardness  = 1;
-            alwaysUnlocked = true;
         }};
         nihility_alloy = new Item("nihility-alloy",Color.valueOf("FCE08C")){{
             healthScaling = 0.7f;
@@ -82,7 +75,6 @@ public class md_items {
             explosiveness = 0.5f;
             cost = 3f;
             hardness  = 3;
-            alwaysUnlocked = true;
         }};
     }
 }

@@ -11,6 +11,8 @@ import mindustry.world.Block;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.meta.Attribute;
 
+import mDimension.meta.*;
+
 import static mDimension.content.md_blocks.modname;
 public class md_environment {
     public static Block
@@ -21,7 +23,9 @@ public class md_environment {
     //ore
     oreAluminium,WallOreTitanium,oreGraphite,WallOreCopper,
     //props
-    darkCrystallineBoulders;
+    darkCrystallineBoulders,
+    //vent
+    dark_crystalline_stoneVent,light_stone_vent,yellow_ice_vent;
     public static CacheLayer
             crystallization_deep,crystallization
     ;
@@ -198,6 +202,22 @@ public class md_environment {
             variants = 3;
             darkCrystalFloor.asFloor().decoration = this;
         }};
+
+        dark_crystalline_stoneVent = new SteamVent("dark-crystalline-stone-vent"){{
+            parent = blendGroup = darkCrystalFloor;
+            attributes.set(md_Attribute.ammonia, 1f);
+        }};
+
+        light_stone_vent = new SteamVent("light-stone-vent"){{
+            parent = blendGroup = light_shale_floor;
+            attributes.set(md_Attribute.ammonia, 1f);
+        }};
+
+        yellow_ice_vent = new SteamVent("yellow-ice-vent"){{
+            parent = blendGroup = yellow_ice;
+            attributes.set(md_Attribute.ammonia, 1f);
+        }};
+
     }
 
     public static void loadCacheLayer(){

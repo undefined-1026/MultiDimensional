@@ -11,13 +11,11 @@ import mDimension.entity.ability.PatienceAbility;
 import mDimension.entity.bullet.BallLightningBulletType;
 import mDimension.tool.Drawff;
 import mDimension.world.blocks.DepicilonUnitType;
-import mDimension.world.blocks.md_Fx;
+import mDimension.world.weapons.BoostWeapon;
 import mDimension.world.weapons.DestoryWeapon;
 import mDimension.world.weapons.OverdriveWeapon;
 import mindustry.ai.types.BuilderAI;
 import mindustry.content.Fx;
-import mindustry.content.UnitTypes;
-import mindustry.entities.Mover;
 import mindustry.entities.abilities.ShieldRegenFieldAbility;
 import mindustry.entities.abilities.StatusFieldAbility;
 import mindustry.entities.bullet.BasicBulletType;
@@ -38,9 +36,10 @@ import static mindustry.Vars.tilesize;
 
 import static mDimension.content.md_blocks.modname;
 public class md_UnitTypes {
-    public static @EntityDef({Unitc.class,Mechc.class}) UnitType captive , zircon;
-    public static @EntityDef({Unitc.class, ElevationMovec.class}) UnitType shimmer;
-    public static @EntityDef({Unitc.class, Payloadc.class}) UnitType primitive ,burst;
+    public static UnitType captive , zircon;
+    public static UnitType shimmer , firefly ,burst;
+    //coreUnit
+    public static UnitType primitive;
 
     public static void load(){
         zircon = new DepicilonUnitType("zircon"){{
@@ -84,9 +83,10 @@ public class md_UnitTypes {
                         recoil = 0.8f;
                         top  =false;
                         shootY = 2f;
-                        rotate = true;
-                        rotationLimit = 20f;
+                        rotate = false;
+                        rotationLimit = 14;
                         rotateSpeed = 60/60f;
+                        shootCone = 45f;
 
                         shootSound = Sounds.shootDisperse;
                         soundPitchMin = 0.85f;
@@ -94,15 +94,11 @@ public class md_UnitTypes {
 
                         minWarmup = 0.55f;
                         shootWarmupSpeed = 0.2f;
-                        parts.addAll(
-                                new RegionPart("-mid"){{
-                                    moves.add(new PartMove(PartProgress.warmup,0,0,6));
-                                }},
-                                new RegionPart("-blade"){{
-                                    under = true;
-                                    moves.add(new PartMove(PartProgress.warmup,1.2f,0,-7));
-                                }}
-                        );
+//                        parts.addAll(
+//                                new RegionPart("-blade"){{
+//                                    moves.add(new PartMove(PartProgress.warmup,1.2f,0,-7));
+//                                }}
+//                        );
 
                         bullet = new BasicBulletType(4, 15){{
                             recoil = 0;
@@ -234,7 +230,7 @@ public class md_UnitTypes {
 
             health = 300f;
             armor = 4f;
-            hitSize = 11f;
+            hitSize = 8f;
 
             engineSize = 2f;
             engineOffset = 19/4f;
@@ -326,6 +322,87 @@ public class md_UnitTypes {
                     hittable = false;
                 }};
             }});
+        }};
+        firefly = new DepicilonUnitType("firefly"){{
+            hovering = true;
+            canDrown = false;
+            flying = true;
+            lowAltitude = false;
+            shadowElevation = 0.1f;
+            softShadowScl = 0.7f;
+
+            drag = 0.08f;
+            speed = 2.2f;
+            rotateSpeed = 8f;
+
+            accel = 0.07f;
+
+            health = 1000f;
+            armor = 4f;
+            hitSize = 13f;
+
+            engineSize = 3.5f;
+            engineOffset = 8.5f;
+            itemCapacity = 30;
+            weapons.add(new BoostWeapon(modname + "firefly-weapon"){{
+                warmupSpeed = 0.06f/60;
+                dissipateSpeed = 0.2f/60;
+                maxReloadSpeed = 4f;
+                layerOffset = -0.01f;
+                parts.addAll(
+                        new RegionPart("-barrel"){{
+                            heatProgress = PartProgress.recoil.mul(PartProgress.warmup);
+                            heatColor = Color.valueOf("FFF5BA");
+                            moves.add(new PartMove(PartProgress.warmup.inv()
+                                    ,-6f,2f,0));
+                        }}
+                );
+                mirror = true;
+                x = 9f;
+                y = -2f;
+                shootY = 4.5f;
+                shootX = -0.5f;
+                range = 25*8f;
+                reload = 40f;
+                inaccuracy = 1.2f;
+                minWarmup = 0.7f;
+                shootSound = Sounds.shootDisperse;
+                shootSoundVolume = 1.3f;
+
+                bullet = new BasicBulletType(35f*8f/60f,13){{
+                    smokeEffect = Fx.none;
+                    shootEffect = md_Fx.shoot1small;
+                    homingPower = 0.01f;
+                    homingRange = 10*8f;
+                    lifetime = 25f/35f * 60f;
+                    width = 10f;
+                    height = 16f;
+                    trailColor = hitColor = backColor = Color.valueOf("FFE79E");
+                    fragBullets = 1;
+                    trailLength = 8;
+                    trailWidth  = 2f;
+                    fragOffsetMax = fragOffsetMin = 0;
+                    fragSpread = 0;
+                    fragRandomSpread = 0;
+                    fragAngle = 0;
+                    fragBullet = new ShrapnelBulletType(){{
+                        toColor = Color.valueOf("FFE79E");
+                        lifetime = 18f;
+                        serrationSpaceOffset = 40;
+                        segmentScl = 12f;
+                        length = 18f;
+                        damage = 25;
+                        width = 8f;
+                        hittable = false;
+                        serrations = 2;
+                    }};
+                }};
+            }});
+            researchCostMultiplier = 0f;
+            moveSound = Sounds.loopExtract;
+            moveSoundVolume = 0.25f;
+            moveSoundPitchMin = 0.7f;
+            moveSoundPitchMax = 1.5f;
         }};
         primitive = new DepicilonUnitType("primitive"){{
             constructor = PayloadUnit::create;

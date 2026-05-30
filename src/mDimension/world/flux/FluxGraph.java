@@ -14,7 +14,7 @@ import static mDimension.consumers.ConsumeFlux.*;
 import static mindustry.Vars.world;
 
 public class FluxGraph {
-
+    private int lastChange = -2;
     public static Queue<Building> queue = new Queue<>();
     public static Seq<Building> outArray1 = new Seq<>();
     public boolean deprecate = false;
@@ -77,7 +77,13 @@ public class FluxGraph {
         return out;
     };
 
-    public void update(){
+    public void update() {
+        if (lastChange != world.tileChanges) {
+            lastChange = world.tileChanges;
+            updateGraph();
+        }
+    }
+    public void updateGraph(){
         Items.coal.description += "size:"+all.size + " init:"+init+" deprecate:"+deprecate +"\nlastAll:\n"+all;
         if(!init)return;
 

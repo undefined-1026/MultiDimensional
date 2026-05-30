@@ -10,11 +10,12 @@ public class md_SectorPresets {
         starting_point = new SectorPreset("starting-point",md_Planets.depicilon,0){{
             alwaysUnlocked = true;
             addStartingItems = true;
-            captureWave = 10;
             difficulty = 1;
             overrideLaunchDefaults = true;
             noLighting = true;
-            startWaveTimeMultiplier = 3f;
+            rules = r->{
+                r.attackMode = true;
+            };
         }};
     }
 }

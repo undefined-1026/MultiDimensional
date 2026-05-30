@@ -30,6 +30,7 @@ public class RadiusItemBridge extends ItemBridge {
     public TextureRegion top;
     public void init(){
         super.init();
+
         top = Core.atlas.find(name+"-top");
     }
 

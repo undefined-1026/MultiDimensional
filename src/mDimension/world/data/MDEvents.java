@@ -30,7 +30,7 @@ public class MDEvents {
                     mods.freeAllIf(b->b.dead);
                 }
             }
-
+            updateGraphs();
 
         });
         Events.on(EventType.BlockDestroyEvent.class,e->{
@@ -50,25 +50,25 @@ public class MDEvents {
             updateGraphs();
         });
 
-        Events.on(EventType.BlockBuildBeginEvent.class,e->{
-            updateGraphs();
-        });
-        Events.on(EventType.BlockBuildEndEvent.class,e->{
-            updateGraphs();
-        });
-
-        Events.on(EventType.PayloadDropEvent.class,e->{
-            if(e.build!=null && ConsumeFlux.hasConsume(e.build)){
-                updateGraphs();
-            }
-        });
-
-        Events.on(EventType.PickupEvent.class,e->{
-            if(e.build!=null && ConsumeFlux.hasConsume(e.build)){
-                updateGraphs();
-            }
-        });
-
+//        Events.on(EventType.BlockBuildBeginEvent.class,e->{
+//            updateGraphs();
+//        });
+//        Events.on(EventType.BlockBuildEndEvent.class,e->{
+//            updateGraphs();
+//        });
+//
+//        Events.on(EventType.PayloadDropEvent.class,e->{
+//            if(e.build!=null && ConsumeFlux.hasConsume(e.build)){
+//                updateGraphs();
+//            }
+//        });
+//
+//        Events.on(EventType.PickupEvent.class,e->{
+//            if(e.build!=null && ConsumeFlux.hasConsume(e.build)){
+//                updateGraphs();
+//            }
+//        });
+//
         Events.on(EventType.SaveLoadEvent.class,e->{
             updateGraphs(true);
         });
@@ -90,9 +90,11 @@ public class MDEvents {
                     graphs.remove(graph);
                 } else if (graph.init) {
                     Items.coal.description += "\n\n\nindex:" + ind + " allSize:" + graphs.size + "\n";
-                    graph.update();
                     if(loadSave){
                         graph.saveLoad();
+                        graph.updateGraph();
+                    }else{
+                        graph.update();
                     }
                 }
                 ind++;

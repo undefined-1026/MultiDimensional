@@ -10,7 +10,7 @@ import arc.math.geom.Position;
 import arc.util.Time;
 import arc.util.io.Reads;
 import arc.util.io.Writes;
-import mDimension.world.blocks.md_Fx;
+import mDimension.content.md_Fx;
 import mindustry.entities.Effect;
 import mindustry.entities.EntityGroup;
 import mindustry.game.Team;

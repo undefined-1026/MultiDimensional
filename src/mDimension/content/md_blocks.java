@@ -12,12 +12,11 @@ import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.Seq;
 import arc.util.Time;
-import arc.util.io.Reads;
-import arc.util.io.Writes;
 import mDimension.consumers.ConsumeFlux;
 import mDimension.consumers.ConsumeBeam;
 import mDimension.consumers.MultiRecipeConsume;
-import mDimension.consumers.modules.FluxModule;
+import mDimension.draw.DrawAutotile;
+import mDimension.draw.DrawJetFlame;
 import mDimension.draw.DrawPiston;
 import mDimension.draw.DrawRotation;
 import mDimension.entity.EntityShield;
@@ -31,6 +30,7 @@ import mDimension.world.blocks.*;
 import mDimension.world.flux.FluxBlock;
 import mDimension.world.flux.FluxNode;
 import mindustry.content.*;
+import mindustry.entities.Effect;
 import mindustry.entities.UnitSorts;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.MultiEffect;
@@ -46,19 +46,18 @@ import mindustry.gen.Sounds;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Pal;
-import mindustry.io.TypeIO;
-import mindustry.type.Category;
-import mindustry.type.ItemStack;
-import mindustry.type.LiquidStack;
-import mindustry.type.Weapon;
+import mindustry.type.*;
 import mindustry.type.unit.MissileUnitType;
 import mindustry.world.Block;
 import mindustry.world.blocks.defense.Wall;
 import mindustry.world.blocks.defense.turrets.ContinuousTurret;
 import mindustry.world.blocks.defense.turrets.ItemTurret;
 import mindustry.world.blocks.distribution.Duct;
-import mindustry.world.blocks.distribution.StackConveyor;
+import mindustry.world.blocks.distribution.OverflowGate;
+import mindustry.world.blocks.distribution.Sorter;
 import mindustry.world.blocks.payloads.Constructor;
+import mindustry.world.blocks.power.Battery;
+import mindustry.world.blocks.power.ConsumeGenerator;
 import mindustry.world.blocks.power.PowerNode;
 import mindustry.world.blocks.production.*;
 import mindustry.world.blocks.storage.StorageBlock;
@@ -67,11 +66,8 @@ import mindustry.world.consumers.ConsumePower;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
 
-import static arc.graphics.g2d.Draw.color;
-import static arc.graphics.g2d.Draw.rect;
-import static arc.graphics.g2d.Lines.stroke;
-import static arc.math.Angles.randLenVectors;
 import static mindustry.type.ItemStack.with;
+import mDimension.meta.*;
 
 public class md_blocks {
     public static final String modname = "mdimension-";
@@ -79,15 +75,15 @@ public class md_blocks {
     public static Block
     small_silicon_arc_furnace,aluminium_electrolysis_cell, al_alloy_smelting,infrared_laser,ultraviolet_laser,nihility_exciter,ngm_launch_pad,
             ti_alloy_smelting, helium_factory, test2,diagonal_beam_merging_prism,
-            water_pyrolyzer,carbon_fibre_binder,heavy_pulverizer,polymer_compressor,phase_adder,
+            water_pyrolyzer,carbon_fibre_binder,heavy_pulverizer,polymer_compressor,phase_adder,ammonia_chamber,
     //distribution
     beam_merging_prism,
             multiway_unloader, light_duct_bridge,
-            light_duct,armored_light_duct,stack_rail_conveyor,
+            light_sorter,light_invertedSorter,light_overflowGate,light_underflowGate,light_duct,armored_light_duct,stack_rail_conveyor,
     //liquid
     liquid_unloader,liquid_conduit_bridge,
     //drill
-    deep_water_extractor,beam_bore,small_impact_drill,
+    deep_water_extractor,beam_bore,small_impact_drill,ammonia_collector,
     //ammo
     heavy_ammo,
     //turret
@@ -97,383 +93,414 @@ public class md_blocks {
     //core
     coreSteady,proof_container,stack,
     //power
-    internal_energy_pile,magnetic_node,
+    internal_energy_pile,magnetic_node,graphite_combustion_chamber,
     //payload
     small_payload_conveyor,
             small_payload_router,
-    test3,ammo_constructor,infantry_factory,airborne_vessels_factory;
+    test3,ammo_constructor,
+    //unit
+    infantry_factory,airborne_vessels_factory,
+    anchor_radar,
+    army_anchor_point_reconstructor,
+            airforce_anchor_point_reconstructor
+    ;
     //endregion
     public static void load() {
         loadAmmo();
         //region craft
-            small_silicon_arc_furnace = new GenericCrafter("small-silicon-arc-furnace"){{
-                requirements(Category.crafting, ItemStack.with(
-                        md_items.aluminium, 30,
-                        Items.graphite, 20
-                ));
+        small_silicon_arc_furnace = new GenericCrafter("small-silicon-arc-furnace") {{
+            requirements(Category.crafting, ItemStack.with(
+                    md_items.aluminium, 30,
+                    Items.graphite, 20
+            ));
+            researchCostMultiplier = 0.05f;
 
-                consumeItem(Items.sand,3);
-                outputItem = new ItemStack(Items.silicon,2);
-                craftTime = (2f/1.8f)*60f;
-                ambientSound = Sounds.loopSmelter;
-                ambientSoundVolume = 0.12f;
-                consumePower(2.5f);
-                size = 2;
-                hasPower = true;
-                hasLiquids = false;
-                drawer = new DrawMulti(
-                        new DrawRegion("-bottom"),
-                        new DrawArcSmelt(){{
-                            flameRad *= 0.7f;
-                            circleSpace *= 0.7f;
-                            flameRadiusScl *= 0.7f;
-                            flameRadiusMag *= 0.7f;
-                            circleStroke *= 0.7f;
+            consumeItem(Items.sand, 3);
+            outputItem = new ItemStack(Items.silicon, 2);
+            craftTime = (2f / 1.8f) * 60f;
+            ambientSound = Sounds.loopSmelter;
+            ambientSoundVolume = 0.12f;
+            consumePower(2.5f);
+            size = 2;
+            hasPower = true;
+            hasLiquids = false;
+            drawer = new DrawMulti(
+                    new DrawRegion("-bottom"),
+                    new DrawArcSmelt() {{
+                        flameRad *= 0.7f;
+                        circleSpace *= 0.7f;
+                        flameRadiusScl *= 0.7f;
+                        flameRadiusMag *= 0.7f;
+                        circleStroke *= 0.7f;
 
-                        }},
-                        new DrawRegion()
-                );
-            }};
-            //region al_alloy_smelting 铝合金
-            al_alloy_smelting = new GenericCrafter("al-alloy-smelting") {{
-                    squareSprite = false;
-                    health = 500;
-                    armor = 3;
-                    size = 3;
-                    requirements(Category.crafting, ItemStack.with(
-                            md_items.aluminium, 80,
-                            Items.copper, 80,
-                            Items.silicon, 60
-                    ));
-                    alwaysUnlocked = true;
-                    craftEffect=new  MultiEffect(
-                            md_Fx.craftEffectLight(40,2.5f,4f,Color.valueOf("D1F8FF"),6,1f),
-                            md_Fx.craftEffectLight(25,1f,3f,Color.valueOf("D1F8FF"),6,5f)
-                    );
-                    outputItem = new ItemStack(md_items.al_alloy, 3);
-                    consumeItems(ItemStack.with(
-                            md_items.aluminium, 5,
-                            Items.silicon, 2
-                    ));
-                    consumePower(4f);
-                    drawer = new DrawMulti(new DrawDefault(), new DrawFlame(Color.valueOf("D1E4FF")){{
-                        flameRadiusScl = 8f;
-                        flameRadiusInMag = 0.7f;
                     }},
-                            new DrawGlowRegion(){{
-                                color = md_items.al_alloy.color;
-                            }});
-                    craftTime = 90f;
-                    hasItems = true;
-                    hasPower = true;
-
-
-                }};
-            //endregion
-            //region ti_alloy_smelting 钛合金
-            ti_alloy_smelting = new GenericCrafter("ti-alloy-smelting") {{
-                    requirements(Category.crafting, ItemStack.with(
-                            md_items.al_alloy, 100,
-                            Items.phaseFabric, 45,
-                            md_items.aluminium, 150,
-                            Items.silicon, 120
-                    ));
-                    health = 500;
-                    armor = 3;
-                    size = 4;
-                    buildTime = 6f;
-                    consume(new ConsumeBeam(6,md_beams.ultraviolet_ligth));
-                    consume(new ConsumeBeam(30,md_beams.near_infrared_ligth));
-                    craftTime = 80f;
-                    itemCapacity = 30;
-                    consumeItems(ItemStack.with(md_items.aluminium, 4, Items.titanium, 12));
-                    consumeLiquid(md_liquids.helium, 1.45f/60f);
-                    outputItem = new ItemStack(md_items.ti_alloy, 4);
-                    hasItems = true;
-                    hasPower = true;
-                    craftEffect = Fx.pulverizeMedium;
-                    consumePower(4f);
-                    drawer = new DrawMulti(
-                            new DrawRegion("-bottom"),
-                            new DrawLiquidTile(md_liquids.helium),
-                            new DrawCrucibleFlame(){{
-                                flameRad = 5f;
-                                particleLife = 110f;
-                                particleRad = 12f;
-                                particleSize = 5;
-                            }},
-                            new DrawRegion(),
-                            new DrawRegion("-top"),
-                            new DrawGlowRegion(){{
-                                color = Color.valueOf("FFF4DB");
-                                alpha = 0.7f;
-                            }}
-                    );
-
-                }};
-            //endregion
-            //region helium_factory 氦气
-            helium_factory = new GenericCrafter("helium-factory") {{
-                    squareSprite = false;
-                    requirements(Category.crafting, ItemStack.with(
-                            md_items.aluminium, 60,
-                            Items.silicon, 40,
-                            Items.lead, 70,
-                            Items.copper, 40
-                    ));
-                    health = 500;
-                    armor = 3;
-                    buildTime = 3f;
-                    consumeLiquid(Liquids.hydrogen, 6/60f);
-                    consumeItem(Items.phaseFabric, 1);
-                    craftTime = 240f;
-                    size = 2;
-
-                    outputLiquid = new LiquidStack(md_liquids.helium, 1.5f/60f);
-                    hasItems = true;
-                    hasPower = true;
-                    craftEffect = md_Fx.polyWave(
-                            4, 10.31f, 0, 5, 100f, new Color(0xffc0ffff), 0.7f
-                    );
-
-                    drawer = new DrawMulti(
-                            new DrawRegion("-bottom"),
-                            new DrawLiquidTile(Liquids.hydrogen, 2f),
-                            new DrawLiquidTile(md_liquids.helium, 2f),
-                            new DrawRegion(),
-                            new DrawRegion("-top")
-
-                    );
-
-                    consumePower(1f);
-                }};
-            //endregion
-            //region aluminium_electrolysis_cell 铝
-            aluminium_electrolysis_cell = new GenericCrafter("aluminium-electrolysis-cell") {{
-                    squareSprite = false;
-                    requirements(Category.crafting, ItemStack.with(
-                            Items.copper, 60,
-                            Items.lead, 50,
-                            Items.silicon, 30
-                    ));
-                    health = 500;
-                    armor = 3;
-                    buildTime = 1f;
-                    size = 2;
-                    itemCapacity = 20;
-                    consumeItem(md_items.bauxite, 4);
-                    outputItem = new ItemStack(md_items.aluminium, 3);
-                    consumePower(2f);
-                    craftEffect = md_Fx.craftEffectLight(40,2.5f,3,Color.valueOf("FFAC99"),5,1f);
-                    craftTime = 120f;
-
-                    drawer = new DrawMulti(
-
-                            new DrawRegion("-bottom"),
-                            new DrawRegion(),
-                            new DrawFlame(Color.valueOf("FFD3BD")) {{
-                                flameRadius = 2.5f;
-                                flameRadiusIn = 1.2f;
-                                flameRadiusMag = 0.5f;
-                                flameRadiusInMag = 0.33f;
-                            }}
-                    );
-                }};
-            //endregion
-            //region test2 测试-激光消费者
-            test2 = new GenericCrafter("test2") {{
-                    requirements(Category.crafting,with());
-                    size = 3;
-                    consumePower(1f);
-                    consume(new ConsumeBeam(20f,md_beams.ultraviolet_ligth));
-                    outputItem = new ItemStack(Items.silicon, 1);
-                    craftTime = 15f;
-                    hasPower = true;
-                    hasItems = true;
-                    alwaysUnlocked = true;
-                }};
-            //endregion
-            //region beam_merging_prism 激光棱镜
-            beam_merging_prism = new md_BeamDeflector("beam-merging-prism"){{
-                requirements(Category.crafting,with());
-                size = 1;
-                drawArrow = true;
-                drawer = new DrawMulti(
-                        new DrawRegion(),
-                        new DrawRotation("-arrow",true,false,30.01f)
-                );
-            }};
-
-            diagonal_beam_merging_prism = new md_BeamDeflector("diagonal-beam-merging-prism"){{
-                requirements(Category.crafting,with());
-                afterRotation.set(1,1);
-                size = 1;
-                diagonalFilp = true;
-                drawArrow = true;
-                drawer = new DrawMulti(
-                        new DrawRegion(),
-                        new DrawRotation("-arrow",true,false,30.01f)
-                );
-            }};
-            //endregion
-            //region polymer_compressor 聚合物压缩机
-            polymer_compressor = new GenericCrafter("polymer-compressor") {{
-                requirements(Category.crafting, ItemStack.with(
-                        md_items.aluminium, 70,
-                        md_items.al_alloy, 40,
-                        Items.silicon, 100,
-                        Items.titanium, 80
-                ));
-                squareSprite = false;
-                size = 3;
-                consumeLiquids(LiquidStack.with(Liquids.oil, 15 / 60f, Liquids.hydrogen, 4f / 60f));
-                consumePower(4f);
-                outputItem = new ItemStack(md_items.polymer, 1);
-                craftTime = 60f;
-                craftEffect = md_Fx.craftEffect(60f,4f,md_items.polymer.color,6,new float[]{4,4,-4,4,-4,-4,4,-4});
-                fullOverride = this.name+"-full";
-                drawer = new DrawMulti(
-                        new DrawRegion("-bottom"),
-                        new DrawLiquidTile(Liquids.hydrogen,4f),
-                        new DrawLiquidTile(Liquids.oil,6.25f),
-                        new DrawRegion(),
-                        new DrawPiston("-blade"){{
-                            strokeFunction = (b,i)->{
-                                return (float) ((Math.cos((b.totalProgress()%150)/150f*2*Math.PI)-1)/2);
-                            };
-                        }},
-                        new DrawRegion("-top")
-                );
-            }};
-            //endregion
-            //region ngm_launch_pad 开采平台
-            ngm_launch_pad = new md_LaunchPadCrafter("ngm-launch-pad") {{
-                requirements(Category.crafting, with(md_items.ti_alloy,350,md_items.al_alloy,500,Items.silicon,600,Items.graphite,700));
-                size = 10;
-                hasItems = true;
-                hasLiquids = true;
-                itemCapacity = 500;
-                liquidCapacity = 9000;
-                health = 8000;
-                squareSprite = false;
-                craftTime = 25*60f;
-                baseHoverTime = 55*60f;
-                launchTime = 6.6f*60f;
-                landTime = 3.4f*60f;
-                launchEffect = md_Fx.loadLaunch(launchTime, this.name + "-pod", 17f * 8f, 0f, 1f, 1f);
-                landEffect = md_Fx.loadLand(landTime, this.name + "-returnpod", 17 * 8f, 0, 1, 1.5f, loadStayTime);
-                consumePower(5f);
-
-                consumeItems(ItemStack.with(
-                        md_items.ti_alloy, 150,
-                        md_items.al_alloy, 250,
-                        md_items.polymer, 200
-                ));
-                consumeLiquids(LiquidStack.with(Liquids.hydrogen, 100f / 60f, Liquids.ozone, 1f));
-                outputLiquid = new LiquidStack(md_liquids.dimension_fluid, 4500);
-                drawer = new DrawMulti(new DrawLiquidTile(md_liquids.dimension_fluid, 5f), new DrawRegion());
-            }};
-            //endregion
-            //region infrared_laser 激光发生器
-            infrared_laser = new LaserCrafter("infrared-laser") {{
-                requirements(Category.crafting, with());
-                craftPos = new Vec2[]{
-                        new Vec2(4,-4),
-                        new Vec2(-4,4)
-                };
-                craftRotation = new Vec2[]{
-                        new Vec2(1,0),
-                        new Vec2(0,1)
-                };
-                diagonalFilp = true;
-                consumePower(2f);
-                beam = md_beams.near_infrared_ligth;
-                size = 2;
-                beamPower = 10f;
-                rotateDraw = false;
-                drawArrow = true;
-                drawer = new DrawMulti(new DrawRegion(),new DrawRotation("-top",true,false));
-            }};
-            ultraviolet_laser = new LaserCrafter("ultraviolet-laser"){{
-                requirements(Category.crafting, with());
-                    craftPos = new Vec2[]{
-                            new Vec2(4,-4),
-                            new Vec2(-4,4)
-                    };
-                    craftRotation = new Vec2[]{
-                            new Vec2(1,1),
-                            new Vec2(1,1)
-                    };
-                consumePower(3f);
-                diagonalFilp = true;
-                beam = md_beams.ultraviolet_ligth;
-                size = 2;
-                beamPower = 6f;
-                rotateDraw = false;
-                drawArrow = true;
-                drawer = new DrawMulti(new DrawRegion(),new DrawRotation("-top",true,false));
-            }};
-            nihility_exciter = new LaserCrafter("nihility-exciter"){{
-                requirements(Category.crafting, with());
-                craftPos = new Vec2[]{
-                        new Vec2(-4,4),
-                        new Vec2(4,4),
-                        new Vec2(-4,-4),
-                        new Vec2(4,-4)
-                };
-                craftRotation = new Vec2[]{
-                        new Vec2(0,1),
-                        new Vec2(0,1),
-                        new Vec2(0,-1),
-                        new Vec2(0,-1)
-                };
-                beam = md_beams.nihility_light;
-                beamPower = 40f;
-                size = 2;
-                rotateDraw = false;
-                drawArrow = true;
-                consumePower(5f);
-                consumeLiquid(md_liquids.dimension_fluid,6/60f);
-
-            }};
-            //endregion
-        carbon_fibre_binder = new GenericCrafter("carbon-fibre-binder"){{
-            requirements(Category.crafting,with());
+                    new DrawRegion()
+            );
+        }};
+        //region al_alloy_smelting 铝合金
+        al_alloy_smelting = new GenericCrafter("al-alloy-smelting") {{
+            squareSprite = false;
+            health = 500;
+            armor = 3;
             size = 3;
-            consume(new ConsumeBeam(40,md_beams.near_infrared_ligth));
-            consumePower(5f);
-            consumeItems(
-                    with(md_items.polymer,5)
-            );
-            consumeLiquid(md_liquids.helium,1.5f/60f);
-            craftTime = 120f;
-            outputItem = new ItemStack(md_items.carbon_fibre,2);
+            requirements(Category.crafting, ItemStack.with(
+                    md_items.aluminium, 80,
+                    Items.copper, 80,
+                    Items.silicon, 60
+            ));
             craftEffect = new MultiEffect(
-                    md_Fx.brokenWave(27f,Color.valueOf("E0EAFF").a(0.85f),5f,4f,1.6f,6,0.3f,1.3f),
-                    md_Fx.brokenWave(27f,Color.valueOf("C9DBFF").a(0.85f),7.5f,6f,1.2f,8,0.5f,1.4f)
-
+                    md_Fx.craftEffectLight(40, 2.5f, 4f, Color.valueOf("D1F8FF"), 6, 1f),
+                    md_Fx.craftEffectLight(25, 1f, 3f, Color.valueOf("D1F8FF"), 6, 5f)
             );
+            outputItem = new ItemStack(md_items.al_alloy, 3);
+            consumeItems(ItemStack.with(
+                    md_items.aluminium, 5,
+                    Items.silicon, 2
+            ));
+            consumePower(4f);
+            drawer = new DrawMulti(new DrawDefault(), new DrawFlame(Color.valueOf("D1E4FF")) {{
+                flameRadiusScl = 8f;
+                flameRadiusInMag = 0.7f;
+            }},
+                    new DrawGlowRegion() {{
+                        color = md_items.al_alloy.color;
+                    }});
+            craftTime = 90f;
+            hasItems = true;
+            hasPower = true;
 
-            drawer = new DrawMulti(new DrawRegion("-bottom"), new DrawSpikes(){{
-                color = Color.valueOf("CCD1F2");
-                stroke = 1.5f;
-                layers = 3;
-                amount = 12;
-                rotateSpeed = 1.3f;
-                layerSpeed = -1.1f;
-            }}, new DrawMultiWeave(){{
-                rotateSpeed = 1.6f;
-                rotateSpeed2 = -1.3f;
-                glowColor = new Color(0.5f, 0.7f, 0.8f, 0.6f);
-            }}, new DrawRegion(),
-                    new DrawRegion("-top2",1.8f,true){{rotation = 45f;}},
-                    new DrawRegion("-top1",-1.6f,true),
-                    new DrawRegion("-top")
+
+        }};
+        //endregion
+        //region ti_alloy_smelting 钛合金
+        ti_alloy_smelting = new GenericCrafter("ti-alloy-smelting") {{
+            requirements(Category.crafting, ItemStack.with(
+                    md_items.al_alloy, 100,
+                    Items.phaseFabric, 45,
+                    md_items.aluminium, 150,
+                    Items.silicon, 120
+            ));
+            health = 500;
+            armor = 3;
+            size = 4;
+            buildTime = 6f;
+            consume(new ConsumeBeam(6, md_beams.ultraviolet_ligth));
+            consume(new ConsumeBeam(30, md_beams.near_infrared_ligth));
+            craftTime = 80f;
+            itemCapacity = 30;
+            consumeItems(ItemStack.with(md_items.aluminium, 4, Items.titanium, 12));
+            consumeLiquid(md_liquids.helium, 1.45f / 60f);
+            outputItem = new ItemStack(md_items.ti_alloy, 4);
+            hasItems = true;
+            hasPower = true;
+            craftEffect = Fx.pulverizeMedium;
+            consumePower(4f);
+            drawer = new DrawMulti(
+                    new DrawRegion("-bottom"),
+                    new DrawLiquidTile(md_liquids.helium),
+                    new DrawCrucibleFlame() {{
+                        flameRad = 5f;
+                        particleLife = 110f;
+                        particleRad = 12f;
+                        particleSize = 5;
+                    }},
+                    new DrawRegion(),
+                    new DrawRegion("-top"),
+                    new DrawGlowRegion() {{
+                        color = Color.valueOf("FFF4DB");
+                        alpha = 0.7f;
+                    }}
             );
 
         }};
-        water_pyrolyzer = new GenericCrafter("water-pyrolyzer"){{
-            requirements(Category.crafting, with(Items.silicon, 70,md_items.al_alloy, 40, md_items.polymer, 80, md_items.aluminium, 120));
+        //endregion
+        //region helium_factory 氦气
+        helium_factory = new GenericCrafter("helium-factory") {{
+            squareSprite = false;
+            requirements(Category.crafting, ItemStack.with(
+                    md_items.aluminium, 60,
+                    Items.silicon, 40,
+                    Items.lead, 70,
+                    Items.copper, 40
+            ));
+            health = 500;
+            armor = 3;
+            buildTime = 3f;
+            consumeLiquid(Liquids.hydrogen, 6 / 60f);
+            consumeItem(Items.phaseFabric, 1);
+            craftTime = 240f;
+            size = 2;
+
+            outputLiquid = new LiquidStack(md_liquids.helium, 1.5f / 60f);
+            hasItems = true;
+            hasPower = true;
+            craftEffect = md_Fx.polyWave(
+                    4, 10.31f, 0, 5, 100f, new Color(0xffc0ffff), 0.7f
+            );
+
+            drawer = new DrawMulti(
+                    new DrawRegion("-bottom"),
+                    new DrawLiquidTile(Liquids.hydrogen, 2f),
+                    new DrawLiquidTile(md_liquids.helium, 2f),
+                    new DrawRegion(),
+                    new DrawRegion("-top")
+
+            );
+
+            consumePower(1f);
+        }};
+        //endregion
+        //region aluminium_electrolysis_cell 铝
+        aluminium_electrolysis_cell = new GenericCrafter("aluminium-electrolysis-cell") {{
+            squareSprite = false;
+            requirements(Category.crafting, ItemStack.with(
+                    Items.copper, 60,
+                    Items.lead, 50,
+                    Items.silicon, 30
+            ));
+            health = 500;
+            armor = 3;
+            buildTime = 1f;
+            size = 2;
+            itemCapacity = 20;
+            consumeItem(md_items.bauxite, 4);
+            outputItem = new ItemStack(md_items.aluminium, 3);
+            consumePower(2f);
+            craftEffect = md_Fx.craftEffectLight(40, 2.5f, 3, Color.valueOf("FFAC99"), 5, 1f);
+            craftTime = 120f;
+
+            drawer = new DrawMulti(
+
+                    new DrawRegion("-bottom"),
+                    new DrawRegion(),
+                    new DrawFlame(Color.valueOf("FFD3BD")) {{
+                        flameRadius = 2.5f;
+                        flameRadiusIn = 1.2f;
+                        flameRadiusMag = 0.5f;
+                        flameRadiusInMag = 0.33f;
+                    }}
+            );
+        }};
+        //endregion
+        //region test2 测试-激光消费者
+        test2 = new GenericCrafter("test2") {{
+            requirements(Category.crafting, with());
+            size = 3;
+            consumePower(1f);
+            consume(new ConsumeBeam(20f, md_beams.ultraviolet_ligth));
+            outputItem = new ItemStack(Items.silicon, 1);
+            craftTime = 15f;
+            hasPower = true;
+            hasItems = true;
+            alwaysUnlocked = true;
+            drawDisabled = true;
+        }};
+        //endregion
+        //region beam_merging_prism 激光棱镜
+        beam_merging_prism = new md_BeamDeflector("beam-merging-prism") {{
+            requirements(Category.crafting, with());
+            size = 1;
+            drawArrow = true;
+            drawer = new DrawMulti(
+                    new DrawRegion(),
+                    new DrawRotation("-arrow", 4)
+            );
+        }};
+
+        diagonal_beam_merging_prism = new md_BeamDeflector("diagonal-beam-merging-prism") {{
+            requirements(Category.crafting, with());
+            afterRotation.set(1, 1);
+            size = 1;
+            diagonalFilp = true;
+            drawArrow = true;
+            drawer = new DrawMulti(
+                    new DrawRegion(),
+                    new DrawRotation("-arrow", 4)
+            );
+        }};
+        //endregion
+        ammonia_chamber = new GenericCrafter("ammonia-chamber") {{
+            requirements(Category.crafting, with(Items.silicon, 30, md_items.aluminium, 50, Items.copper, 50));
+            consumeLiquid(md_liquids.ammonia, 24 / 60f);
+            outputLiquids = LiquidStack.with(Liquids.water, 12 / 60f, Liquids.nitrogen, 12 / 60f);
+            liquidOutputDirections = new int[]{1, 3};
+            size = 3;
+            rotate = true;
+            rotateDraw = false;
+
+            invertFlip = true;
+            group = BlockGroup.liquids;
+
+            consumePower(0.5f);
+            drawer = new DrawMulti(
+                    new DrawRegion("-bottom"),
+                    new DrawLiquidTile(md_liquids.ammonia, 3f),
+                    new DrawRegion(),
+                    new DrawLiquidOutputs(),
+                    new DrawGlowRegion() {{
+                        alpha = 0.7f;
+                        color = Color.valueOf("EFBDF3");
+                        glowIntensity = 0.3f;
+                        glowScale = 6f;
+                    }}
+            );
+        }};
+        //region polymer_compressor 聚合物压缩机
+        polymer_compressor = new GenericCrafter("polymer-compressor") {{
+            requirements(Category.crafting, ItemStack.with(
+                    md_items.aluminium, 70,
+                    md_items.al_alloy, 40,
+                    Items.silicon, 100,
+                    Items.titanium, 80
+            ));
+            squareSprite = false;
+            size = 3;
+            consumeLiquids(LiquidStack.with(Liquids.oil, 15 / 60f, Liquids.hydrogen, 4f / 60f));
+            consumePower(4f);
+            outputItem = new ItemStack(md_items.polymer, 1);
+            craftTime = 60f;
+            craftEffect = md_Fx.craftEffect(60f, 4f, md_items.polymer.color, 6, new float[]{4, 4, -4, 4, -4, -4, 4, -4});
+            fullOverride = this.name + "-full";
+            drawer = new DrawMulti(
+                    new DrawRegion("-bottom"),
+                    new DrawLiquidTile(Liquids.hydrogen, 4f),
+                    new DrawLiquidTile(Liquids.oil, 6.25f),
+                    new DrawRegion(),
+                    new DrawPiston("-blade") {{
+                        strokeFunction = (b, i) -> {
+                            return (float) ((Math.cos((b.totalProgress() % 150) / 150f * 2 * Math.PI) - 1) / 2);
+                        };
+                    }},
+                    new DrawRegion("-top")
+            );
+        }};
+        //endregion
+        //region ngm_launch_pad 开采平台
+        ngm_launch_pad = new md_LaunchPadCrafter("ngm-launch-pad") {{
+            requirements(Category.crafting, with(md_items.ti_alloy, 350, md_items.al_alloy, 500, Items.silicon, 600, Items.graphite, 700));
+            size = 10;
+            hasItems = true;
+            hasLiquids = true;
+            itemCapacity = 500;
+            liquidCapacity = 9000;
+            health = 8000;
+            squareSprite = false;
+            craftTime = 25 * 60f;
+            baseHoverTime = 55 * 60f;
+            launchTime = 6.6f * 60f;
+            landTime = 3.4f * 60f;
+            launchEffect = md_Fx.loadLaunch(launchTime, this.name + "-pod", 17f * 8f, 0f, 1f, 1f);
+            landEffect = md_Fx.loadLand(landTime, this.name + "-returnpod", 17 * 8f, 0, 1, 1.5f, loadStayTime);
+            consumePower(5f);
+
+            consumeItems(ItemStack.with(
+                    md_items.ti_alloy, 150,
+                    md_items.al_alloy, 250,
+                    md_items.polymer, 200
+            ));
+            consumeLiquids(LiquidStack.with(Liquids.hydrogen, 100f / 60f, Liquids.ozone, 1f));
+            outputLiquid = new LiquidStack(md_liquids.dimension_fluid, 4500);
+            drawer = new DrawMulti(new DrawLiquidTile(md_liquids.dimension_fluid, 5f), new DrawRegion());
+        }};
+        //endregion
+        //region infrared_laser 激光发生器
+        infrared_laser = new LaserCrafter("infrared-laser") {{
+            requirements(Category.crafting, with());
+            craftPos = new Vec2[]{
+                    new Vec2(4, -4),
+                    new Vec2(-4, 4)
+            };
+            craftRotation = new Vec2[]{
+                    new Vec2(1, 0),
+                    new Vec2(0, 1)
+            };
+            diagonalFilp = true;
+            consumePower(2f);
+            beam = md_beams.near_infrared_ligth;
+            size = 2;
+            beamPower = 10f;
+            rotateDraw = false;
+            drawArrow = true;
+            drawer = new DrawMulti(new DrawRegion(), new DrawRotation("-top", 4));
+        }};
+        ultraviolet_laser = new LaserCrafter("ultraviolet-laser") {{
+            requirements(Category.crafting, with());
+            craftPos = new Vec2[]{
+                    new Vec2(4, -4),
+                    new Vec2(-4, 4)
+            };
+            craftRotation = new Vec2[]{
+                    new Vec2(1, 1),
+                    new Vec2(1, 1)
+            };
+            consumePower(3f);
+            diagonalFilp = true;
+            beam = md_beams.ultraviolet_ligth;
+            size = 2;
+            beamPower = 6f;
+            rotateDraw = false;
+            drawArrow = true;
+            drawer = new DrawMulti(new DrawRegion(), new DrawRotation("-top", 4));
+        }};
+        nihility_exciter = new LaserCrafter("nihility-exciter") {{
+            requirements(Category.crafting, with());
+            craftPos = new Vec2[]{
+                    new Vec2(-4, 4),
+                    new Vec2(4, 4),
+                    new Vec2(-4, -4),
+                    new Vec2(4, -4)
+            };
+            craftRotation = new Vec2[]{
+                    new Vec2(0, 1),
+                    new Vec2(0, 1),
+                    new Vec2(0, -1),
+                    new Vec2(0, -1)
+            };
+            beam = md_beams.nihility_light;
+            beamPower = 40f;
+            size = 2;
+            rotateDraw = false;
+            drawArrow = true;
+            consumePower(5f);
+            consumeLiquid(md_liquids.dimension_fluid, 6 / 60f);
+
+        }};
+        //endregion
+        carbon_fibre_binder = new GenericCrafter("carbon-fibre-binder") {{
+            requirements(Category.crafting, with());
+            size = 3;
+            consume(new ConsumeBeam(40, md_beams.near_infrared_ligth));
+            consumePower(5f);
+            consumeItems(
+                    with(md_items.polymer, 5)
+            );
+            consumeLiquid(md_liquids.helium, 1.5f / 60f);
+            craftTime = 120f;
+            outputItem = new ItemStack(md_items.carbon_fibre, 2);
+            craftEffect = new MultiEffect(
+                    md_Fx.brokenWave(27f, Color.valueOf("E0EAFF").a(0.85f), 5f, 4f, 1.6f, 6, 0.3f, 1.3f),
+                    md_Fx.brokenWave(27f, Color.valueOf("C9DBFF").a(0.85f), 7.5f, 6f, 1.2f, 8, 0.5f, 1.4f)
+
+            );
+
+
+            drawer = new DrawMulti(
+                    new DrawRegion("-bottom"),
+                    new DrawMultiWeave() {{
+                        rotateSpeed = 1.6f;
+                        rotateSpeed2 = -1.3f;
+                        glowColor = new Color(0.5f, 0.7f, 0.8f, 0.6f);
+                    }},
+                    new DrawRegion(),
+                    new DrawRegion("-top2", 1.8f, true) {{
+                        rotation = 45f;
+                    }},
+                    new DrawRegion("-top1", -1.6f, true),
+                    new DrawRegion("-top")
+            );
+        }};
+        water_pyrolyzer = new GenericCrafter("water-pyrolyzer") {{
+            requirements(Category.crafting, with(Items.silicon, 70, md_items.al_alloy, 40, md_items.polymer, 80, md_items.aluminium, 120));
             size = 2;
             craftTime = 10f;
             rotate = true;
@@ -485,13 +512,13 @@ public class md_blocks {
 
             consumeLiquid(Liquids.water, 20 / 60f);
             consumePower(1f);
-            consume(new ConsumeBeam(10,md_beams.near_infrared_ligth));
+            consume(new ConsumeBeam(10, md_beams.near_infrared_ligth));
             warmupSpeed = 0.003f;
 
             drawer = new DrawMulti(
                     new DrawRegion("-bottom"),
                     new DrawLiquidTile(Liquids.water, 2f),
-                    new DrawBubbles(Color.valueOf("7693e3")){{
+                    new DrawBubbles(Color.valueOf("7693e3")) {{
                         sides = 10;
                         recurrence = 3f;
                         spread = 6;
@@ -500,7 +527,7 @@ public class md_blocks {
                     }},
                     new DrawRegion(),
                     new DrawLiquidOutputs(),
-                    new DrawGlowRegion(){{
+                    new DrawGlowRegion() {{
                         alpha = 0.7f;
                         color = Color.valueOf("c4bdf3");
                         glowIntensity = 0.3f;
@@ -515,30 +542,30 @@ public class md_blocks {
             outputLiquids = LiquidStack.with(Liquids.ozone, 8f / 60, Liquids.hydrogen, 12f / 60);
             liquidOutputDirections = new int[]{1, 3};
         }};
-        test5 = new MultiRecipeCrafter("test5"){{
+        test5 = new MultiRecipeCrafter("test5") {{
             drawDisabled = true;
-            requirements(Category.crafting,with());
+            requirements(Category.crafting, with());
             consumeRecipes(new MultiRecipeConsume(
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeItems = with(Items.sand,2,Items.lead,2);
-                        consumeLiquids = LiquidStack.with(Liquids.water,12/60f);
-                        outputItems = with(Items.metaglass,3);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(Items.sand, 2, Items.lead, 2);
+                        consumeLiquids = LiquidStack.with(Liquids.water, 12 / 60f);
+                        outputItems = with(Items.metaglass, 3);
                     }},
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeItems = with(Items.sand,2);
-                        outputItems = with(Items.silicon,1);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(Items.sand, 2);
+                        outputItems = with(Items.silicon, 1);
                     }},
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeLiquids = LiquidStack.with(md_liquids.crystallization_oil,12/60f);
-                        outputItems = with(md_items.polymer,1);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeLiquids = LiquidStack.with(md_liquids.crystallization_oil, 12 / 60f);
+                        outputItems = with(md_items.polymer, 1);
                     }},
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeItems = with(md_items.polymorphic_crystal,2);
-                        outputLiquids = LiquidStack.with(md_liquids.dimension_fluid,12/60f);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(md_items.polymorphic_crystal, 2);
+                        outputLiquids = LiquidStack.with(md_liquids.dimension_fluid, 12 / 60f);
                     }},
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeLiquids = LiquidStack.with(Liquids.arkycite,12/60f);
-                        outputLiquids = LiquidStack.with(md_liquids.helium,12/60f);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeLiquids = LiquidStack.with(Liquids.arkycite, 12 / 60f);
+                        outputLiquids = LiquidStack.with(md_liquids.helium, 12 / 60f);
                     }}
 
             ));
@@ -549,86 +576,93 @@ public class md_blocks {
             consumePower(2f);
 
         }};
-        heavy_pulverizer = new MultiRecipeCrafter("heavy-pulverizer"){{
-            requirements(Category.crafting,with(md_items.aluminium,40,Items.silicon,30));
+        heavy_pulverizer = new MultiRecipeCrafter("heavy-pulverizer") {{
+            requirements(Category.crafting, with(md_items.aluminium, 40, Items.graphite, 50));
             craftTime = 30f;
             autoResetEnabled = true;
             itemCapacity = 20;
-            consumePower(4f);
+            consumePower(3f);
             size = 2;
-            craftEffect = md_Fx.craftEffect(60f,3f,md_items.polymer.color,4,new float[]{3,3,-3,3,-3,-3,3,-3});
+            researchCost = with(md_items.aluminium, 30, Items.graphite, 30);
+            craftEffect = md_Fx.craftEffect(60f, 3f, md_items.polymer.color, 4, new float[]{3, 3, -3, 3, -3, -3, 3, -3});
             consumeRecipes(new MultiRecipeConsume(
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeItems = with(Items.scrap,3);
-                        outputItems = with(Items.sand,6);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(Items.scrap, 3);
+                        outputItems = with(Items.sand, 6);
                     }},
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeItems = with(Items.thorium,3);
-                        outputItems = with(Items.sand,4);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(Items.thorium, 3);
+                        outputItems = with(Items.sand, 4);
                     }},
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeItems = with(Items.tungsten,3);
-                        outputItems = with(Items.sand,4);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(Items.tungsten, 3);
+                        outputItems = with(Items.sand, 4);
                     }},
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeItems = with(Items.titanium,4);
-                        outputItems = with(Items.sand,4);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(Items.titanium, 4);
+                        outputItems = with(Items.sand, 4);
                     }},
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeItems = with(Items.beryllium,4);
-                        outputItems = with(Items.sand,4);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(Items.beryllium, 4);
+                        outputItems = with(Items.sand, 4);
                     }},
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeItems = with(Items.copper,5);
-                        outputItems = with(Items.sand,4);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(md_items.aluminium, 4);
+                        outputItems = with(Items.sand, 4);
                     }},
-                    new MultiRecipeConsume.Recipe(){{
-                        consumeItems = with(Items.lead,5);
-                        outputItems = with(Items.sand,4);
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(Items.copper, 5);
+                        outputItems = with(Items.sand, 4);
+                    }},
+                    new MultiRecipeConsume.Recipe() {{
+                        consumeItems = with(Items.lead, 5);
+                        outputItems = with(Items.sand, 4);
                     }}
             ));
 
             drawer = new DrawMulti(
                     new DrawRegion("-bottom"),
-                    new DrawRegion("-rotator",200/60f,true),
+                    new DrawRegion("-rotator", 200 / 60f, true),
                     new DrawRegion(),
-                    new DrawGlowRegion("-glow"){{
+                    new DrawGlowRegion("-glow") {{
                         color = Color.valueOf("FFEF96");
                         alpha = 0.6f;
                     }}
             );
         }};
-        phase_adder = new GenericCrafter("phase-adder"){{
-            requirements(Category.crafting,with(Items.silicon,80,md_items.polymer,50,md_items.al_alloy,70,md_items.ti_alloy,40));
+        phase_adder = new GenericCrafter("phase-adder") {{
+            requirements(Category.crafting, with(Items.silicon, 80, md_items.polymer, 50, md_items.al_alloy, 70, md_items.ti_alloy, 40));
             craftTime = 180f;
             size = 2;
             itemCapacity = 20;
-            consumeItems(with(md_items.light_ceramic,4));
-            consumeLiquid(md_liquids.dimension_fluid,10/60f);
-            consumePower(300/60f);
-            outputItem = new ItemStack(md_items.polymorphic_crystal,2);
+            consumeItems(with(md_items.light_ceramic, 4));
+            consumeLiquid(md_liquids.dimension_fluid, 10 / 60f);
+            consumePower(300 / 60f);
+            outputItem = new ItemStack(md_items.polymorphic_crystal, 2);
 
             craftEffect = new MultiEffect(
-                    md_Fx.craftEffectLight(70f,4.5f,5f,Color.valueOf("FFEBA3"),7,1f),
-                    md_Fx.craftEffectLight(55f,2f,7f,Color.valueOf("FFEBA3"),4,6f)
+                    md_Fx.craftEffectLight(70f, 4.5f, 5f, Color.valueOf("FFEBA3"), 7, 1f),
+                    md_Fx.craftEffectLight(55f, 2f, 7f, Color.valueOf("FFEBA3"), 4, 6f)
             );
 
             drawer = new DrawMulti(
                     new DrawRegion("-bottom"),
-                    new DrawLiquidTile(md_liquids.dimension_fluid,5/4f),
+                    new DrawLiquidTile(md_liquids.dimension_fluid, 5 / 4f),
                     new DrawRegion(),
                     new DrawRegion("-mid"),
-                    new DrawCrucibleFlame(){{
-                        flameColor = Color.valueOf("F5D37C");
-                        midColor = Color.valueOf("F2AD85");
-                        alpha = 0.38f;
-                        particles = 20;
-                        particleSize = 2.8f;
-                    }
-                        @Override
-                        public void draw(Building build){
+                    new DrawCrucibleFlame() {
+                        {
+                            flameColor = Color.valueOf("F5D37C");
+                            midColor = Color.valueOf("F2AD85");
+                            alpha = 0.38f;
+                            particles = 20;
+                            particleSize = 2.8f;
+                        }
 
-                            if(build.warmup() > 0f && flameColor.a > 0.001f){
+                        @Override
+                        public void draw(Building build) {
+
+                            if (build.warmup() > 0f && flameColor.a > 0.001f) {
                                 Lines.stroke(circleStroke * build.warmup());
 
                                 float si = Mathf.absin(flameRadiusScl, flameRadiusMag);
@@ -636,14 +670,14 @@ public class md_blocks {
                                 Draw.blend(Blending.additive);
 
                                 Draw.color(midColor, a);
-                                Fill.poly(build.x + x, build.y + y, 4,flameRad + si);
+                                Fill.poly(build.x + x, build.y + y, 4, flameRad + si);
 
                                 Draw.color(flameColor, a);
-                                Lines.poly(build.x + x, build.y + y, 4,(flameRad + circleSpace + si) * build.warmup());
+                                Lines.poly(build.x + x, build.y + y, 4, (flameRad + circleSpace + si) * build.warmup());
 
                                 float base = (Time.time / particleLife);
                                 rand.setSeed(build.id);
-                                for(int i = 0; i < particles; i++){
+                                for (int i = 0; i < particles; i++) {
                                     float fin = (rand.random(1f) + base) % 1f, fout = 1f - fin;
                                     float angle = rand.random(360f) + (Time.time / rotateScl) % 360f;
                                     float len = particleRad * particleInterp.apply(fout);
@@ -666,10 +700,10 @@ public class md_blocks {
         }};
         //endregion
         // region drill
-        deep_water_extractor = new SolidPump("deep-water-extractor"){{
-            requirements(Category.production,with(Items.silicon,40,md_items.aluminium,30,md_items.polymer,30));
+        deep_water_extractor = new SolidPump("deep-water-extractor") {{
+            requirements(Category.production, with(Items.silicon, 40, md_items.aluminium, 30, md_items.polymer, 30));
             result = Liquids.water;
-            pumpAmount = 10.2f/60f;
+            pumpAmount = 10.2f / 60f;
             size = 2;
             liquidCapacity = 150;
             rotateSpeed = 1.1f;
@@ -684,41 +718,43 @@ public class md_blocks {
 
             consumePower(1.5f);
         }};
-        beam_bore = new BeamDrill("beam-bore"){{
-            requirements(Category.production, with(Items.titanium,50));
-            consumePower(12/60f);
+        beam_bore = new BeamDrill("beam-bore") {
+            {
+                requirements(Category.production, with(md_items.aluminium, 30, Items.silicon, 20));
+                consumePower(12 / 60f);
 
-            drillTime = 150;
-            tier = 3;
-            size = 2;
-            optionalBoostIntensity = 2.2f;
-            range = 7;
-            fogRadius = 3;
-            researchCost = with(Items.titanium, 10);
-            heatColor = Color.valueOf("E6C845");
-            boostHeatColor = Color.valueOf("F26B4D");
+                drillTime = 150;
+                tier = 3;
+                size = 2;
+                optionalBoostIntensity = 2.2f;
+                range = 7;
+                fogRadius = 3;
+                researchCost = with(md_items.aluminium, 10, Items.silicon, 10);
+                heatColor = Color.valueOf("E6C845");
+                boostHeatColor = Color.valueOf("F26B4D");
 
-            consume(new ConsumeBeam(5,md_beams.near_infrared_ligth).boost());
-        }
+                consume(new ConsumeBeam(5, md_beams.near_infrared_ligth).boost());
+            }
 
             @Override
             public void setStats() {
                 super.setStats();
-                stats.addPercent(Stat.booster,(optionalBoostIntensity));
+                stats.addPercent(Stat.booster, (optionalBoostIntensity));
             }
         };
-        small_impact_drill = new BurstDrill_Pro("small-impact-drill"){{
-            requirements(Category.production, with(Items.graphite,20, Items.silicon, 15));
+        small_impact_drill = new BurstDrill_Pro("small-impact-drill") {{
+            requirements(Category.production, with(Items.graphite, 18, Items.copper, 18));
             drillTime = 60f * 12f;
             dominantItemsMulti = 2f;
-            drillMultipliers.put(md_items.aluminium,1.2f);
-            drillMultipliers.put(Items.beryllium,1.5f);
-            drillMultipliers.put(Items.graphite,1.5f);
+            drillMultipliers.put(md_items.aluminium, 1.2f);
+            drillMultipliers.put(Items.beryllium, 1.5f);
+            drillMultipliers.put(Items.graphite, 1.5f);
+
 
             size = 2;
             hasPower = true;
             tier = 3;
-            drillEffect = new MultiEffect(Fx.mineImpact, Fx.drillSteam, md_Fx.mineImpactWave.wrap(Color.valueOf("F0FFFF"),15f));
+            drillEffect = new MultiEffect(Fx.mineImpact, Fx.drillSteam, md_Fx.mineImpactWave.wrap(Color.valueOf("F0FFFF"), 15f));
             shake = 1f;
             itemCapacity = 30;
 
@@ -727,20 +763,79 @@ public class md_blocks {
             arrowSpacing = 3f;
 
             researchCost = with();
-            liquidBoostIntensity = 2;
+            liquidBoostIntensity = 2.5f;
 
             fogRadius = 4;
 
             consumePower(10 / 60f);
-            consumeLiquid(Liquids.water, 3f / 60f).boost();
+            consumeLiquid(Liquids.nitrogen, 1f / 60f).boost();
+        }};
+        ammonia_collector = new AttributeCrafter("ammonia-collector") {{
+            requirements(Category.production, with(Items.silicon, 30, md_items.aluminium, 40));
+            attribute = md_Attribute.ammonia;
+            group = BlockGroup.liquids;
+            minEfficiency = 9f - 0.0001f;
+            baseEfficiency = 0f;
+            displayEfficiency = false;
+
+            craftEffect = Fx.turbinegenerate;
+            drawer = new DrawMulti(new DrawRegion("-bottom"), new DrawBlurSpin("-rotator", 6f), new DrawRegion("-mid"), new DrawLiquidTile(md_liquids.ammonia, 36f / 4f), new DrawDefault());
+            craftTime = 120f;
+            size = 3;
+            ambientSound = Sounds.loopHum;
+            ambientSoundVolume = 0.06f;
+            hasLiquids = true;
+            hasItems = false;
+            boostScale = 1f / 9f;
+            itemCapacity = 0;
+            outputLiquid = new LiquidStack(md_liquids.ammonia, 48f / 60f);
+            consumePower(0.5f);
+            liquidCapacity = 180;
         }};
         //endregion
         //region distribution
+            light_duct = new Duct("light-duct") {{
+                requirements(Category.distribution, with(md_items.aluminium, 1));
+                speed = 4f;
+                health = 180;
+                armor = 1;
+                buildTime = 0.2f/60;
+                bridgeReplacement = light_duct_bridge;
+                alwaysUnlocked = true;
+                researchCost = ItemStack.with(md_items.aluminium, 5);
+                fullOverride = this.name + "-private";
+            }
+                @Override
+                public void init() {
+                    super.init();
+                    bridgeReplacement = light_duct_bridge;
+                }
+            };
+
+            armored_light_duct = new Duct("armored-light-duct") {{
+                requirements(Category.distribution, with(md_items.polymer, 1, md_items.aluminium, 1,md_items.al_alloy,1));
+                speed = 4f;
+                health = 300;
+                armor = 3;
+                armored = true;
+                researchCost = with(md_items.polymer, 100, md_items.aluminium, 100,md_items.al_alloy,100);
+                bridgeReplacement = light_duct_bridge;
+                buildCostMultiplier = 0.6f;
+                fullOverride = this.name + "-private";
+            }
+
+                @Override
+                public void init() {
+                    super.init();
+                    bridgeReplacement = light_duct_bridge;
+                }
+            };
             light_duct_bridge = new RadiusItemBridge("al-alloy-duct-bridge") {{
-                requirements(Category.distribution, with(Items.silicon, 10, Items.titanium, 10));
+                requirements(Category.distribution, with(Items.silicon, 10, Items.copper, 10));
                 arrowSpacing = 6f;
                 bridgeWidth = 8;
                 arrowTimeScl = 15;
+                buildTime = 0.2f*60f;
                 health = 200;
                 armor = 2;
                 range = 6;
@@ -751,28 +846,29 @@ public class md_blocks {
                 researchCostMultiplier = 0.3f;
                 squareSprite = false;
             }};
-
-            light_duct = new Duct("light-duct") {{
-                requirements(Category.distribution, with(md_items.aluminium, 1));
-                speed = 4f;
-                health = 180;
-                armor = 1;
-                bridgeReplacement = light_duct_bridge;
-                buildCostMultiplier = 0.5f;
-                researchCost = ItemStack.with(Items.silicon, 20, md_items.aluminium, 20);
-                fullOverride = this.name + "-private";
+            light_sorter = new Sorter("light-sorter"){{
+                requirements(Category.distribution, with(md_items.aluminium, 3));
+                buildCostMultiplier = 3f;
+                researchCost = with( md_items.aluminium, 10);
             }};
 
-            armored_light_duct = new Duct("armored-light-duct") {{
-                requirements(Category.distribution, with(md_items.polymer, 1, md_items.aluminium, 1,md_items.al_alloy,1));
-                speed = 4f;
-                health = 300;
-                armor = 3;
-                armored = true;
-                bridgeReplacement = light_duct_bridge;
-                buildCostMultiplier = 0.6f;
-                researchCost = ItemStack.with(Items.silicon, 20, md_items.aluminium, 20);
-                fullOverride = this.name + "-private";
+            light_invertedSorter = new Sorter("light-inverted-sorter"){{
+                requirements(Category.distribution, with(md_items.aluminium, 3));
+                buildCostMultiplier = 3f;
+                invert = true;
+                researchCost = with( );
+            }};
+            light_overflowGate = new OverflowGate("light-overflow-gate"){{
+                requirements(Category.distribution, with(md_items.aluminium, 3));
+                buildCostMultiplier = 3f;
+                researchCost = with( );
+            }};
+
+            light_underflowGate = new OverflowGate("light-underflow-gate"){{
+                requirements(Category.distribution, with(md_items.aluminium, 3));
+                buildCostMultiplier = 3f;
+                invert = true;
+                researchCost = with( );
             }};
 
             multiway_unloader = new md_MultiwayUnloader("multiway-unloader") {{
@@ -831,6 +927,7 @@ public class md_blocks {
             ionize = new ContinuousTurret("ionize") {{
                 requirements(Category.turret, ItemStack.with(Items.copper, 50, Items.silicon, 20, md_items.aluminium, 20));
                 //outlineColor = Pal.darkOutline;
+                researchCost = with(Items.copper, 50, Items.silicon, 20, md_items.aluminium, 20);
                 shootType = new PointLaserBulletType() {{
                     beamEffect = md_Fx.polyFacula(4, 3.2f, 0, 60f, Color.valueOf("d0d0ff"), 0.87f);
                     beamEffectInterval = 6f;
@@ -901,7 +998,8 @@ public class md_blocks {
                 consumePower(4f);
             }};
             crack = new ItemTurret("crack"){{
-                requirements(Category.turret, ItemStack.with(md_items.aluminium, 80, Items.titanium, 50));
+                requirements(Category.turret, ItemStack.with(md_items.aluminium, 80, Items.silicon, 50));
+                researchCost = with(md_items.aluminium, 20, Items.silicon, 10);
                 ammo(
                         md_items.aluminium,
                         new CatapultBulletType(20*8/60f*1.5f,30){{
@@ -989,7 +1087,7 @@ public class md_blocks {
                 reload = 25;
                 inaccuracy = 3f;
                 scaledHealth = 250;
-                drawer = new DrawTurret("steady-state-"){{
+                drawer = new DrawTurret("brown-"){{
                     parts.addAll(
                             new RegionPart("-blade"){{
                                 mirror = true;
@@ -1007,8 +1105,7 @@ public class md_blocks {
                                 moves.add(new PartMove(PartProgress.recoil,0.3f,-0.4f,-10f));
 
                             }},
-                            new RegionPart("-mid"){{
-                            }},
+                            new RegionPart("-mid"),
                             new RegionPart("-barr"){{
                                 moveY = -1f;
                                 progress = PartProgress.warmup;
@@ -1235,7 +1332,7 @@ public class md_blocks {
                 }};
             }};
             dawn = new ItemTurret("dawn"){{
-                requirements(Category.turret,with());
+                requirements(Category.turret,with(md_items.polymorphic_crystal,50,md_items.polymer,200,md_items.light_ceramic,150,Items.silicon,220));
                 scaledHealth = 250;
                 predictTarget = false;
                 shootSound = Sounds.shootMissileLong;
@@ -1301,7 +1398,7 @@ public class md_blocks {
                 minWarmup = 0.99f;
                 shootWarmupSpeed = 0.06f;
 
-                drawer = new DrawTurret("steady-state-"){{
+                drawer = new DrawTurret("brown-"){{
                     parts.addAll(
                             new RegionPart("-mid-under-blade"){{
                                 mirror = true;
@@ -1366,7 +1463,7 @@ public class md_blocks {
                 outlineColor = Pal.darkOutline;
             }};
             polarization = new ItemTurret("polarization"){{
-                requirements(Category.turret,with());
+                requirements(Category.turret,with(md_items.plasma,80,md_items.al_alloy,200,md_items.polymer,150,Items.silicon,200));
                 scaledHealth = 250;
 
                 ammo(
@@ -1527,6 +1624,7 @@ public class md_blocks {
             }};
             test4 = new ContinuousTurret("test4"){{
                 requirements(Category.turret,with());
+                drawDisabled = true;
                 size = 4;
                 shootType = new MultiPointLaserBullet(){{
                     damage = 2500f/12f;
@@ -1845,18 +1943,22 @@ public class md_blocks {
         //endregion
         //region wall
         aluminium_wall = new Wall("aluminium-wall"){{
-            requirements(Category.defense,with(md_items.aluminium,24));
-            health = 2200/4;
+            requirements(Category.defense,with(md_items.aluminium,6));
+            scaledHealth = 550f;
+            researchCost = with( md_items.aluminium, 20);
+
         }};
         aluminium_wall_large = new Wall("aluminium-wall-large"){{
             requirements(Category.defense,with(md_items.aluminium,24));
-            health = 2200;
+            scaledHealth = 550f;
             size = 2;
+            researchCost = with( md_items.aluminium, 80);
+
         }};
         //endregion
         //region core
             coreSteady = new md_ElectricFieldCoreBlock("core-steady"){{
-                requirements(Category.effect, BuildVisibility.coreZoneOnly, with(Items.silicon, 1200, md_items.aluminium,1500,Items.titanium,1500));
+                requirements(Category.effect, BuildVisibility.coreZoneOnly, with(Items.silicon, 1200, md_items.aluminium,1500,Items.graphite,1000));
                 alwaysUnlocked = true;
                 hasPower = true;
                 conductivePower = true;
@@ -1901,34 +2003,46 @@ public class md_blocks {
             }};
         //endregion
         //region power
-        internal_energy_pile = new md_MonoblockBattery("internal-energy-pile"){{
-            requirements(Category.power,with());
+        internal_energy_pile = new Battery("internal-energy-pile"){{
+            requirements(Category.power,with(Items.silicon,20,md_items.al_alloy,15,Items.graphite,15));
             health = 300;
             armor = 2;
             solid = false;
             underBullets = false;
+            enableDrawStatus = false;
+            researchCost = with(Items.silicon,100,md_items.al_alloy,80,Items.graphite,50);
             consumePowerBuffered(6000f);
             size = 1;
-            drawer = new DrawMulti(new DrawDefault(),
-                    new DrawRegion("-content-void"),
-                    new DrawRegion("-shard1"),
-                    new DrawRegion("-shard2"),
-                    new DrawRegion("-shard3"),
-                    new DrawRegion("-shard4"),
-                    new DrawRegion("-shard5"),
-                    new DrawRegion("-shard6"),
-                    new DrawRegion("-shard7"),
-                    new DrawRegion("-shard8")
+            drawer = new DrawMulti(new DrawRegion("-bottom"),new DrawPower(),
+                    new DrawAutotile()
                     );
         }};
         magnetic_node = new PowerNode("magnetic-node"){{
-            requirements(Category.power, with(md_items.aluminium,10));
+            requirements(Category.power, with(md_items.aluminium,7));
             maxNodes = 8;
             laserRange = 7;
             underBullets = true;
             crushFragile = true;
+            researchCost = with( md_items.aluminium, 10);
             consume(new ConsumePower(1f/60f,300,true));
             enableDrawStatus = false;
+        }};
+        graphite_combustion_chamber = new ConsumeGenerator("graphite-combustion-chamber"){{
+            requirements(Category.power, with(md_items.aluminium, 35, Items.graphite,35));
+            powerProduction = 200/60f;
+            itemDuration = 60f;
+            size = 2;
+            generateEffect = Fx.none;
+            researchCostMultiplier = 0.05f;
+            ambientSoundVolume = 0.06f;
+
+            consumeItems(with(Items.graphite,1));
+            drawer = new DrawMulti(
+                    new DrawRegion("-bottom"),
+                    new DrawRegion(),
+                    new DrawJetFlame(),
+                    new DrawRegion("-top")
+            );
         }};
         //endregion
         //region payload
@@ -1957,7 +2071,6 @@ public class md_blocks {
             buildSpeed = 0.6f;
             consumePower(2.5f);
             size = 3;
-            //TODO expand this list
             filter = Seq.with(md_blocks.heavy_ammo);
 
         }};
@@ -1969,7 +2082,7 @@ public class md_blocks {
             size = 3;
             regionSuffix = "-ammo";
             consumePower(1.2f);
-            researchCostMultiplier = 0.5f;
+            researchCost = with(Items.silicon, 100, md_items.aluminium, 120, Items.graphite, 80);
         }};
 
         airborne_vessels_factory = new UnitFactory("airborne-vessels-factory"){{
@@ -1980,8 +2093,53 @@ public class md_blocks {
             size = 3;
             regionSuffix = "-ammo";
             consumePower(1.2f);
-            researchCostMultiplier = 0.5f;
+            researchCostMultiplier = 0.2f;
         }};
+        anchor_radar = new AnchorRadar("anchor-radar"){{
+            requirements(Category.units,with(Items.silicon,15,Items.graphite,10,md_items.al_alloy,5,Items.copper,10));
+            radius = 8f*25;
+            callUnitInterval = 150f;
+            callEffect = new Effect(120f, e->{
+                int amount = 4;
+                for(int i=0;i<amount;i++){
+                    float fin = e.fin()*amount;
+                    fin -=i * 0.5f;
+                    if(fin>1 || fin < 0)continue;
+                    float sin = Mathf.sin(fin * Mathf.PI);
+                    Draw.color(Color.white,sin * 0.8f);
+                    Lines.stroke(0.9f * sin);
+                    Lines.circle(e.x,e.y,fin * 14f);
+                }
+            }){{followParent=false;}};
+        }};
+        army_anchor_point_reconstructor = new RegionReconstructor("army-anchor-point-reconstructor"){{
+            requirements(Category.units, with(Items.silicon, 150, md_items.al_alloy, 120, Items.graphite, 150));
+            size = 3;
+            craftTime = 60f*20;
+            consumeItems(with(
+                    Items.silicon,70,md_items.al_alloy,40
+            ));
+            itemCapacity = 140;
+            consumePower(220f/60f);
+            upgrades.addAll(
+                    new UnitType[]{md_UnitTypes.captive,md_UnitTypes.zircon}
+            );
+        }};
+
+        airforce_anchor_point_reconstructor = new RegionReconstructor("airforce-anchor-point-reconstructor"){{
+            requirements(Category.units, with(Items.silicon, 150, md_items.al_alloy, 120, Items.graphite, 150));
+            size = 3;
+            craftTime = 60f*30;
+            consumeItems(with(
+                    Items.silicon,50,md_items.al_alloy,40,Items.graphite,30
+            ));
+            itemCapacity = 140;
+            consumePower(250f/60f);
+            upgrades.addAll(
+                    new UnitType[]{md_UnitTypes.shimmer,md_UnitTypes.firefly}
+            );
+        }};
+
         //endregion
 
         Block test = new TestBlock("testBlock"){{

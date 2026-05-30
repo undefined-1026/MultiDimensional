@@ -58,7 +58,6 @@ public class OverdriveWeapon extends Weapon {
         autoTarget = true;
         controllable = true;
         rotate = true;
-        useAmmo = false;
         mountType = OverdriveWeaponMount::new;
         recoil = 0f;
         noAttack = true;
