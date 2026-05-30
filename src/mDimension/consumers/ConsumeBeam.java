@@ -5,8 +5,8 @@ import arc.graphics.Color;
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import mDimension.meta.md_StatValues;
+import mDimension.world.data.BeamData;
 import mDimension.world.data.Beam;
-import mDimension.world.blocks.md_LaserData;
 import mindustry.content.Items;
 import mindustry.gen.Building;
 import mindustry.ui.Bar;
@@ -16,13 +16,13 @@ import mindustry.world.meta.Stat;
 import mindustry.world.meta.Stats;
 
 public class ConsumeBeam extends Consume {
-    public Seq<md_LaserData> lasers = new Seq<>();
+    public static Seq<ConsumeBeam> out = new Seq<>();
 
     public float maxWavelength = -1;
     public float minWavelength = -1;
 
     public float requiredPower = 10f;
-    //由于aunke使用的min，所以改这个调用没有
+    //由于aunke使用的min，所以改这个diao用没有
     public float maxEfficiency = 1f;
 
     public Beam inputBeam = null;
@@ -30,8 +30,17 @@ public class ConsumeBeam extends Consume {
 
     public static Seq<ConsumeBeam> allConsume = new Seq<>();
 
-    public float cachePower = 0f;
     public ObjectMap<Building,LaserModule> laserDataMap = new ObjectMap<>();
+    public static class LaserModule {
+        public float cachePower;
+        public float power = 0;
+        public LaserModule(){}
+
+        @Override
+        public String toString() {
+            return ""+power;
+        }
+    }
 
     public ConsumeBeam(){allConsume.add(this);}
     public ConsumeBeam(float requiredPower){
@@ -63,13 +72,13 @@ public class ConsumeBeam extends Consume {
     }
 
     public static Seq<ConsumeBeam> getLaserConsume(Block block){
-        Seq<ConsumeBeam> consumeLasers = new Seq<>();
+        out.clear();
         for(Consume c:block.consumers){
             if(c instanceof ConsumeBeam cl){
-                consumeLasers.add(cl);
+                out.add(cl);
             }
         }
-        return consumeLasers;
+        return out;
     }
 
     @Override
@@ -78,24 +87,45 @@ public class ConsumeBeam extends Consume {
             laserDataMap.remove(b);
             return 0;
         }
-        if (laserDataMap.get(b) == null) {
-            laserDataMap.put(b, new LaserModule());
+        LaserModule module = laserDataMap.get(b);
+        if (module == null) {
+            laserDataMap.put(b, module = new LaserModule());
         }
-        float power = 0;
-        for(int i=0;i<laserDataMap.get(b).laserDatas.size;i++) {
-            md_LaserData laserData = laserDataMap.get(b).laserDatas.get(i);
-            if (
-                    (minWavelength < 0 || minWavelength <= laserData.wavelengthLevel) &&
-                            (maxWavelength < 0 || laserData.wavelengthLevel <= maxWavelength) &&
-                            (inputBeam == null || inputBeam.name.equals(laserData.beam))
-            ) {
+//        float power = 0;
+//        for(int i=0;i<laserDataMap.get(b).laserDatas.size;i++) {
+//            BeamData laserData = laserDataMap.get(b).laserDatas.get(i);
+//            if (
+//                    canConsume(laserData)
+//            ) {
+//
+//                power += laserData.power;
+//            }
+//        }
+        module.power = module.cachePower;
+        module.cachePower = 0;
+        Items.copper.description = "power:"+module.power + "\n\n";
 
-                power += laserData.power;
-            }
+        return Math.min(maxEfficiency, module.power/requiredPower);
+    }
+
+    public boolean canConsume(BeamData date){
+        return (minWavelength < 0 || minWavelength <= date.wavelengthLevel) &&
+                (maxWavelength < 0 || date.wavelengthLevel <= maxWavelength) &&
+                (inputBeam == null || inputBeam.name.equals(date.beam));
+    }
+
+    public void accrue(Building b,BeamData data){
+        if(!canConsume(data))return;
+        if (b.dead) {
+            laserDataMap.remove(b);
+            return;
         }
-        laserDataMap.get(b).laserDatas.clear();
-        laserDataMap.get(b).power = power;
-        return Math.min(maxEfficiency, power/requiredPower);
+        LaserModule module = laserDataMap.get(b);
+        if (module == null) {
+            laserDataMap.put(b, module = new LaserModule());
+        }
+        module.cachePower += data.power;
+        Items.copper.description += "\n"+module.cachePower + ","+data.power;
     }
 
     public float getLaserPower(Building b){

@@ -5,7 +5,6 @@ import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Lines;
 import arc.math.Mathf;
 import arc.util.Time;
-import mDimension.world.blocks.md_Fx;
 import mDimension.world.blocks.md_complexStatusEffect;
 import mindustry.Vars;
 import mindustry.content.StatusEffects;

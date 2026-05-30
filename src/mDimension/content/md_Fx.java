@@ -1,4 +1,4 @@
-package mDimension.world.blocks;
+package mDimension.content;
 
 import arc.Core;
 import arc.graphics.g2d.*;
@@ -17,6 +17,8 @@ import mindustry.ctype.UnlockableContent;
 import mindustry.entities.Effect;
 
 import arc.graphics.Color;
+import mindustry.gen.Posc;
+import mindustry.gen.Unit;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Pal;
@@ -91,7 +93,7 @@ public class md_Fx {
         mixcol(Color.valueOf("ffe3bf"), e.fout());
         rect(region, e.x, e.y, e.rotation);
         Draw.reset();
-    }).layer(Layer.flyingUnit + 5f),
+    }).layer(211f),
 
     regionFlashColor = new Effect(70, e -> {
         if (!(e.data instanceof TextureRegion region)) return;
@@ -99,7 +101,16 @@ public class md_Fx {
         mixcol(e.color, e.fout());
         rect(region, e.x, e.y, e.rotation);
         Draw.reset();
-    }).layer(Layer.flyingUnit + 5f),
+    }).layer(211),
+
+    regionFlashColorInUnit = new Effect(70, e -> {
+        if (!(e.data instanceof Unit u)) return;
+        alpha(e.fout());
+        float scl = Mathf.lerp(1.2f,1f,e.finpowdown())/4;
+        mixcol(e.color, e.foutpowdown());
+        rect(u.type.fullIcon, u.x, u.y,scl*u.type.fullIcon.width,scl*u.type.fullIcon.height, u.rotation -90);
+        Draw.reset();
+    }).layer(211),
 
     spatter = new Effect(40f, e -> {
         Lines.stroke(4f * e.fout(Interp.pow3In));
@@ -408,6 +419,16 @@ public class md_Fx {
             Lines.stroke(5f * b.fout());
             Lines.circle(e.x, e.y, b.finpow() * e.rotation);
         });
+    }),
+
+    shoot1small = new Effect(10f,e->{
+       color(e.color);
+       float wid = e.fout() * 2f;
+       float len = (e.fout() +1) * 2.5f;
+       for(int o:Mathf.signs){
+           Drawf.tri(e.x,e.y,wid,len,e.rotation +o * 12f);
+       }
+       Fill.circle(e.x,e.y,wid/2);
     }),
 
 
@@ -720,6 +741,29 @@ public class md_Fx {
 
             Draw.reset();
         });
+    }
+
+    public static Effect squareWave(float life,float begin,float end,float stroke){
+        return new Effect(life,e->{
+            Draw.color(e.color);
+            float size = begin + (end-begin)*e.finpow();
+            Lines.stroke(stroke * e.fout());
+            Lines.square(e.x,e.y,size,e.rotation);
+        });
+    }
+
+    public static Effect Line(float life,float stroke,float beginCapSize,float endCapSize){
+        return new Effect(life,e->{
+            if(!(e.data instanceof Posc pos))return;
+            Draw.color(e.color);
+
+            Lines.stroke(stroke * e.fout());
+            Lines.line(e.x,e.y,pos.x(),pos.y());
+
+            Fill.circle(e.x,e.y,beginCapSize * e.fout());
+            Fill.circle(pos.x(),pos.y(),endCapSize * e.fout());
+
+        }){{followParent = false;}};
     }
 
     public static Effect polyStarExplosion(float life, int amount, float length, float width, float rotation, boolean hasCap) {

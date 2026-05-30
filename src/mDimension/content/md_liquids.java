@@ -3,7 +3,6 @@ import arc.graphics.Color;
 import mDimension.world.blocks.ployCellLiquid;
 import mindustry.content.StatusEffects;
 import mindustry.type.*;
-import mDimension.world.blocks.md_Fx;
 
 import static mindustry.content.Liquids.water;
 

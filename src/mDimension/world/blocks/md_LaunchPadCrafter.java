@@ -6,6 +6,7 @@ import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.TextureRegion;
 import arc.math.Mathf;
 import arc.util.Time;
+import mDimension.content.md_Fx;
 import mindustry.content.Fx;
 import mindustry.core.UI;
 import mindustry.entities.Effect;

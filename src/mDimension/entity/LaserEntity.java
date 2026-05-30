@@ -9,10 +9,10 @@ import arc.util.io.Writes;
 import mDimension.consumers.ConsumeBeam;
 import mDimension.content.md_beams;
 import mDimension.tool.md_Edge;
+import mDimension.world.data.BeamData;
 import mDimension.world.data.Beam;
 import mDimension.world.blocks.LaserCrafter;
 import mDimension.world.blocks.md_BeamDeflector;
-import mDimension.world.blocks.md_LaserData;
 import mindustry.Vars;
 import mindustry.content.Blocks;
 import mindustry.content.Items;
@@ -46,7 +46,7 @@ public class LaserEntity implements Entityc, Drawc {
     public Seq<Building> passBuild = new Seq<Building>(3);
 
     public Beam laser = md_beams.near_infrared_ligth;
-    public md_LaserData laserData;
+    public BeamData beamData;
 
 
 
@@ -57,7 +57,7 @@ public class LaserEntity implements Entityc, Drawc {
         this.laser = laser;
     }
 
-    public void setPower(float power){this.laserData.setPower(power);}
+    public void setPower(float power){this.beamData.setPower(power);}
 
     public void start(float x,float y,Vec2 r){points.add(new Vec2(x+r.x*4,y+r.y*4));}
     public void turn(float x,float y){points.add(new Vec2(x,y));}
@@ -76,7 +76,7 @@ public class LaserEntity implements Entityc, Drawc {
                 }
                 remove();
             }
-            int length = this.laserData.length;
+            int length = this.beamData.length;
             points.clear();
             passBuild.clear();
             start(x,y,launchRotation);
@@ -126,7 +126,7 @@ public class LaserEntity implements Entityc, Drawc {
                     isBlocked = true;
                     for (ConsumeBeam c : ConsumeBeam.getLaserConsume(onBuild.block)) {
                         if (c.laserDataMap.get(onBuild) == null) continue;
-                        c.laserDataMap.get(onBuild).laserDatas.add(laserData);
+                        c.accrue(onBuild, beamData);
                     }
                     break;
                 }
@@ -150,7 +150,7 @@ public class LaserEntity implements Entityc, Drawc {
 
     @Override
     public void draw() {
-        if(laserData.power>0.1f)laser.laserDrawer.draw(this);
+        if(beamData.power>0.1f)laser.laserDrawer.draw(this);
         Draw.reset();
     }
 
@@ -171,7 +171,7 @@ public class LaserEntity implements Entityc, Drawc {
             tcb.crafterLasers[id] = this;
         }
         this.launchRotation = rotation;
-        this.laserData = new md_LaserData(laser,0);
+        this.beamData = new BeamData(laser,0);
         add();
     }
 

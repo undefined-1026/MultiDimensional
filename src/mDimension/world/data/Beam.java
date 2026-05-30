@@ -35,7 +35,7 @@ public class Beam extends UnlockableContent implements Senseable {
     public static void basicDraw(LaserEntity l,Color color,float rad){basicDraw( l, color, rad, 1f,110f,4f);}
     public static void basicDraw(LaserEntity l,Color color,float rad,float alpha,float Layer,float fadingDst){
         rad *= (Mathf.sin(Time.time+Mathf.randomSeed(l.id* 114L)*50,24,0.08f)+1f);
-        color = color.a(Math.min(alpha*l.laserData.power/10,1));
+        color = color.a(Math.min(alpha*l.beamData.power/10,1));
         Draw.color(color);
         Draw.z(Layer);
         Lines.stroke(rad*1.4f);
@@ -59,7 +59,7 @@ public class Beam extends UnlockableContent implements Senseable {
     }
     public static void basicDraw(LaserEntity l, Color color, float rad, float alpha, float Layer,float fadingDst,Cons3<Float,Float,Float> drawCap){
         rad *= (Mathf.sin(Time.time+Mathf.randomSeed(l.id* 114L)*50,24,0.08f)+1f);
-        color = color.a(Math.min(alpha*l.laserData.power/10,1));
+        color = color.a(Math.min(alpha*l.beamData.power/10,1));
         Draw.color(color);
         Draw.z(Layer);
         Lines.stroke(rad*1.4f);
@@ -83,7 +83,7 @@ public class Beam extends UnlockableContent implements Senseable {
     }
     public static void basicDraw(LaserEntity l, Color color, float rad, float alpha, float Layer,float fadingDst, Cons4<Float,Float,Float,Boolean> drawCap){
         rad *= (Mathf.sin(Time.time+Mathf.randomSeed(l.id* 114L)*50,24,0.08f)+1f);
-        color = color.a(Math.min(alpha*l.laserData.power/10,1));
+        color = color.a(Math.min(alpha*l.beamData.power/10,1));
         Draw.color(color);
         Draw.z(Layer);
         Lines.stroke(rad*1.4f);
@@ -106,7 +106,7 @@ public class Beam extends UnlockableContent implements Senseable {
         Draw.reset();
     }
     public static void particleFlowDraw(LaserEntity l, Color color, float length, float spread, float amountMulti, float alpha, float Layer){
-        color = color.a(Math.min(alpha*l.laserData.power/10,1));
+        color = color.a(Math.min(alpha*l.beamData.power/10,1));
         Draw.color(color);
         Draw.z(Layer);
         Lines.stroke(0.5f);
@@ -121,7 +121,7 @@ public class Beam extends UnlockableContent implements Senseable {
 
     public static void node(LaserEntity l, Color color, float rad, float alpha, float Layer, Cons4<Float,Float,Float,Boolean> drawCap){
         rad *= (Mathf.sin(Time.time+Mathf.randomSeed(l.id* 114L)*50,24,0.08f)+1f);
-        color = color.a(Math.min(alpha*l.laserData.power/10,1));
+        color = color.a(Math.min(alpha*l.beamData.power/10,1));
         Draw.color(color);
         Draw.z(Layer);
         for(int i = 1;i<l.points.size;i++){

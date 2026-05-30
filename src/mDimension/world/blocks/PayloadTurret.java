@@ -7,6 +7,7 @@ import arc.struct.ObjectMap;
 import arc.struct.OrderedMap;
 import arc.util.io.Reads;
 import arc.util.io.Writes;
+import mDimension.content.md_Fx;
 import mindustry.ctype.UnlockableContent;
 import mindustry.entities.bullet.BulletType;
 import mindustry.gen.Building;

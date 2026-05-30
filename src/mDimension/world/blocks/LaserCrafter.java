@@ -4,6 +4,7 @@ import arc.graphics.Color;
 import arc.math.geom.Vec2;
 import arc.util.io.Reads;
 import arc.util.io.Writes;
+import mDimension.content.md_Fx;
 import mDimension.content.md_beams;
 import mDimension.entity.LaserEntity;
 import mDimension.meta.md_StatValues;

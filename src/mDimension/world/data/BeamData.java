@@ -1,20 +1,18 @@
-package mDimension.world.blocks;
-
-import mDimension.world.data.Beam;
+package mDimension.world.data;
 
 /**激光数据类*/
-public class md_LaserData {
+public class BeamData {
     public int length;
     public int wavelengthLevel;
     public float power = 10f;
     public String beam = "";
-    public md_LaserData(Beam l){
+    public BeamData(Beam l){
         this.length = l.lenght;
         this.wavelengthLevel = l.energyLevel;
         this.beam = l.name;
     }
 
-    public md_LaserData(Beam l,float power){
+    public BeamData(Beam l, float power){
         this.length = l.lenght;
         this.wavelengthLevel = l.energyLevel;
         this.power = power;
