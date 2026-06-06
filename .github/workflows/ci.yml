@@ -1,0 +1,52 @@
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '11076708'
+
+      - name: Install Android SDK components
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Desktop JAR (for testing only)
+        run: ./gradlew jar
+
+      - name: Build Android-compatible JAR
+        run: ./gradlew dex
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+
+      - name: Upload Desktop JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}Desktop
+          path: build/libs/*Desktop.jar
+
+      - name: Upload Android-compatible JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}
