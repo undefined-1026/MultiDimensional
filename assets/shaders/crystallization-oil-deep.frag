@@ -1,4 +1,4 @@
-precision mediump float;
+//precision mediump float;
 
 uniform sampler2D u_texture;
 uniform sampler2D u_noise;
