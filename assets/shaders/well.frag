@@ -1,3 +1,4 @@
+precision mediump float;
 
 uniform sampler2D u_texture;
 uniform sampler2D u_noise;
@@ -21,38 +22,38 @@ vec2 worldToUV(vec2 world) {
 float tra(float x){
     return 3*x*x-2*x*x*x;
 }
-vec4 nearsMax8(float stroke){
-    vec2 v = vec2(1.0/u_resolution.x,1.0/u_resolution.y);
-    return max(max(max(max(max(max(max(
-    texture2D(
-        u_texture,v_texCoords+v*vec2(0,stroke)
-    ),texture2D(
-        u_texture,v_texCoords+v*vec2(0,-stroke)
-    )),texture2D(
-        u_texture,v_texCoords+v*vec2(stroke,0)
-    )),texture2D(
-        u_texture,v_texCoords+v*vec2(-stroke,0)
-    )),texture2D(
-        u_texture,v_texCoords+v*vec2(stroke,stroke)
-    )),texture2D(
-        u_texture,v_texCoords+v*vec2(-stroke,stroke)
-    )),texture2D(
-        u_texture,v_texCoords+v*vec2(-stroke,-stroke)
-    )),texture2D(
-        u_texture,v_texCoords+v*vec2(stroke,-stroke)
-    ));
-}
+//vec4 nearsMax8(float stroke){
+//    vec2 v = vec2(1.0/u_resolution.x,1.0/u_resolution.y);
+//    return max(max(max(max(max(max(max(
+//    texture2D(
+//        u_texture,v_texCoords+v*vec2(0,stroke)
+//    ),texture2D(
+//        u_texture,v_texCoords+v*vec2(0,-stroke)
+//    )),texture2D(
+//        u_texture,v_texCoords+v*vec2(stroke,0)
+//    )),texture2D(
+//        u_texture,v_texCoords+v*vec2(-stroke,0)
+//    )),texture2D(
+//        u_texture,v_texCoords+v*vec2(stroke,stroke)
+//    )),texture2D(
+//        u_texture,v_texCoords+v*vec2(-stroke,stroke)
+//    )),texture2D(
+//        u_texture,v_texCoords+v*vec2(-stroke,-stroke)
+//    )),texture2D(
+//        u_texture,v_texCoords+v*vec2(stroke,-stroke)
+//    ));
+//}
 vec4 nearsMax4(float stroke){
     vec2 v = vec2(1.0/u_resolution.x,1.0/u_resolution.y);
     return max(max(max(
    texture2D(
-       u_texture,v_texCoords+v*vec2(0,stroke)
+       u_texture,v_texCoords+v*vec2(0.0,stroke)
    ),texture2D(
-       u_texture,v_texCoords+v*vec2(0,-stroke)
+       u_texture,v_texCoords+v*vec2(0.0,-stroke)
    )),texture2D(
-   u_texture,v_texCoords+v*vec2(stroke,0)
+   u_texture,v_texCoords+v*vec2(stroke,0.0)
    )),texture2D(
-   u_texture,v_texCoords+v*vec2(-stroke,0)
+   u_texture,v_texCoords+v*vec2(-stroke,0.0)
    ));
 }
 vec2 center(vec2 p,float w,float dx){
@@ -68,7 +69,7 @@ void main() {
     vec2 c = v_texCoords*u_resolution + u_campos;
 
     vec2 o = center(c, 5.0, u_time / 60.0);
-    float m = abs(((sin(2*cos(1.8*o.x) + o.y + u_time /80)+1) + cos(u_time/40 + sin(o.y*0.7)))/4);
+    float m = abs(((sin(2.0*cos(1.8*o.x) + o.y + u_time /80.0)+1.0) + cos(u_time/40.0 + sin(o.y*0.7)))/4.0);
 
     vec4 maxed = nearsMax4(stroke * (1+m*4));
     vec2 v = vec2(1.0/u_resolution.x,1.0/u_resolution.y);
@@ -86,7 +87,7 @@ void main() {
 //        }
 
         color.a *= (0.3 * (m+0.3));
-        color.rgb *= (m/4+1);
+        color.rgb *= (m/4.0+1.0);
         gl_FragColor = color;
     }
 
