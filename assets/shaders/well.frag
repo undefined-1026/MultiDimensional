@@ -61,7 +61,7 @@ vec2 center(vec2 p,float w,float dx){
     float cy = floor(q.y/w)*w+0.5*w;
 
     return vec2((cx+cy)*0.5,(cx-cy)*0.5);
-};
+}
 void main() {
     vec4 color = texture2D(u_texture, v_texCoords);
 
@@ -70,7 +70,7 @@ void main() {
     vec2 o = center(c, 5.0, u_time / 60.0);
     float m = abs(((sin(2.0*cos(1.8*o.x) + o.y + u_time /80.0)+1.0) + cos(u_time/40.0 + sin(o.y*0.7)))/4.0);
 
-    vec4 maxed = nearsMax4(stroke * (1+m*4));
+    vec4 maxed = nearsMax4(stroke * (1.0+m*4.0));
     vec2 v = vec2(1.0/u_resolution.x,1.0/u_resolution.y);
     vec2 T = v_texCoords.xy;
 
