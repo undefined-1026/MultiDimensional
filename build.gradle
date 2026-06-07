@@ -68,13 +68,15 @@ tasks.register('jarAndroid'){
         def d8 = isWindows ? "d8.bat" : "d8"
 
         //dex and desugar files - this requires d8 in your PATH
-        "$d8 $dependencies --min-api 14 --output ${project.name}Android.jar ${project.name}Desktop.jar"
+        // 修复：输入文件名加上 ${version}，与 jar 任务保持一致
+        "$d8 $dependencies --min-api 14 --output ${project.name}Android.jar ${project.name}Desktop${version}.jar"
                 .execute(null, new File("build/libs")).waitForProcessOutput(System.out, System.err)
     }
 }
 
 jar{
-    archiveFileName = "${project.name}Desktop.jar"
+    // 修复：使用 .set() 并保留 version
+    archiveFileName.set("${project.name}Desktop${version}.jar")
 
     from{
         configurations.runtimeClasspath.collect{ it.isDirectory() ? it : zipTree(it) }
@@ -93,13 +95,15 @@ jar{
 tasks.register('deploy', Jar){
     dependsOn jarAndroid
     dependsOn jar
-    archiveFileName = "${project.name}.jar"
+    archiveFileName.set("${project.name}.jar")
 
-    from{ [zipTree("build/libs/${project.name}Desktop${version}.jar"), zipTree("build/libs/${project.name}Android.jar")] }
+    // 修复：分开写 from，引用带 version 的 Desktop jar
+    from(zipTree("build/libs/${project.name}Desktop${version}.jar"))
+    from(zipTree("build/libs/${project.name}Android.jar"))
 
     doLast{
         delete{
-            delete "build/libs/${project.name}Android${version}.jar"
+            delete "build/libs/${project.name}Android.jar"
         }
     }
 }
