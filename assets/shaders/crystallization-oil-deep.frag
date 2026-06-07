@@ -4,7 +4,7 @@ uniform sampler2D u_texture;
 uniform sampler2D u_noise;
 uniform vec2 u_campos;
 uniform vec2 u_resolution;
-uniform float u_time;
+uniform highp float u_time;
 
 in vec2 v_texCoords;
 

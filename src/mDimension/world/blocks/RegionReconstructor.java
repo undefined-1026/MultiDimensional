@@ -3,6 +3,7 @@ package mDimension.world.blocks;
 import arc.Core;
 import arc.Graphics;
 import arc.audio.Sound;
+import arc.func.Cons;
 import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Lines;
@@ -16,8 +17,10 @@ import arc.util.io.Reads;
 import arc.util.io.Writes;
 import mDimension.content.md_Fx;
 import mindustry.Vars;
+import mindustry.content.Fx;
 import mindustry.core.UI;
 import mindustry.entities.Effect;
+import mindustry.entities.EntityGroup;
 import mindustry.entities.Units;
 import mindustry.gen.*;
 import mindustry.graphics.Drawf;
@@ -29,6 +32,8 @@ import mindustry.type.UnitType;
 import mindustry.ui.Bar;
 import mindustry.ui.Fonts;
 import mindustry.ui.Styles;
+import mindustry.world.blocks.payloads.Payload;
+import mindustry.world.blocks.payloads.UnitPayload;
 import mindustry.world.blocks.units.UnitBlock;
 import mindustry.world.consumers.ConsumeItems;
 import mindustry.world.meta.Stat;
@@ -172,7 +177,6 @@ public class RegionReconstructor extends UnitBlock {
 
 
     public class RegionReconstructorBuild extends UnitBuild{
-
         public float upgradeWarmup = 0f;
         public int amount = 0;
         public Interval time = new Interval();
@@ -221,8 +225,36 @@ public class RegionReconstructor extends UnitBlock {
                 }
             }
             extendPlayer(u,e);
-            u.remove();
+            u.dead = true;
+            this.handleUnitPayload(u,p->{});
             e.add();
+        }
+
+        @Override
+        public void drawPayload() {
+        }
+
+        @Override
+        public void updatePayload(Unit unitHolder, Building buildingHolder) {
+        }
+
+        public void handleUnitPayload(Unit unit, Cons<Payload> grabber) {
+            if (unit.isPlayer()) {
+                unit.getPlayer().clearUnit();
+            }
+
+            unit.remove();
+            if (Vars.net.client()) {
+                unit.id = EntityGroup.nextId();
+            } else {
+                Core.app.post(() -> unit.id = EntityGroup.nextId());
+            }
+            if(!Vars.net.client()){
+                this.payload = new UnitPayload(unit);
+                Core.app.post(()->{
+                    this.payload = null;
+                });
+            }
         }
 
 
@@ -274,10 +306,8 @@ public class RegionReconstructor extends UnitBlock {
 
 
         public void extendPlayer(Unit old,Unit now){
-            for(Player p:Groups.player){
-                if(p.unit() == old){
-                    p.unit(now);
-                }
+            if(old.getPlayer()!=null){
+                old.getPlayer().unit(now);
             }
         }
 
