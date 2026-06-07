@@ -223,7 +223,7 @@ public class md_environment {
     public static void loadCacheLayer(){
         crystallization_deep = new CacheLayer.ShaderLayer(new Shaders.SurfaceShader("crystallization-oil-deep"));
         CacheLayer.add(crystallization_deep);
-        crystallization = new CacheLayer.ShaderLayer(new Shaders.SurfaceShader("crystallization-oil"));
-        CacheLayer.add(crystallization);
+//        crystallization = new CacheLayer.ShaderLayer(new Shaders.SurfaceShader("crystallization-oil"));
+//        CacheLayer.add(crystallization);
     }
 }
