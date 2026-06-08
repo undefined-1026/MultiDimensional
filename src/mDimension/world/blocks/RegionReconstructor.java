@@ -226,8 +226,11 @@ public class RegionReconstructor extends UnitBlock {
             }
             extendPlayer(u,e);
             u.dead = true;
-            this.handleUnitPayload(u,p->{});
+            u.remove();
+            Call.unitDespawn(u);
+            //this.handleUnitPayload(u, p->{payload = (UnitPayload)p;});
             e.add();
+            Units.notifyUnitSpawn(e);
         }
 
         @Override
@@ -249,12 +252,7 @@ public class RegionReconstructor extends UnitBlock {
             } else {
                 Core.app.post(() -> unit.id = EntityGroup.nextId());
             }
-            if(!Vars.net.client()){
-                this.payload = new UnitPayload(unit);
-                Core.app.post(()->{
-                    this.payload = null;
-                });
-            }
+            grabber.get(new UnitPayload(unit));
         }
 
 
@@ -377,6 +375,7 @@ public class RegionReconstructor extends UnitBlock {
             super.write(write);
             write.f(progress);
             write.f(upgradeWarmup);
+            write.i(amount);
             TypeIO.writeVecNullable(write, commandPos);
         }
         @Override
@@ -384,6 +383,7 @@ public class RegionReconstructor extends UnitBlock {
             super.read(read, revision);
             progress = read.f();
             upgradeWarmup = read.f();
+            amount = read.i();
             commandPos = TypeIO.readVecNullable(read);
         }
     }

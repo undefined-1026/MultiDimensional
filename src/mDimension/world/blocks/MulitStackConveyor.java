@@ -122,7 +122,7 @@ public class MulitStackConveyor extends StackConveyor {
                 }
             }else{ //transfer
                 if(state != stateLoad || (items.total() >= block.itemCapacity)){
-                    if(front() instanceof StackConveyorBuild e && e.team == team && e.link == -1){
+                    if(front() instanceof MulitStackConveyorBuild e && e.team == team && e.link == -1 && e.block.itemCapacity >= this.block.itemCapacity){
                         e.items.add(items);
                         e.lastItem = lastItem;
                         e.link = tile.pos();
