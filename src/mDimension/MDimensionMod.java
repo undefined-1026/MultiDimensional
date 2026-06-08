@@ -37,7 +37,6 @@ public class MDimensionMod extends Mod {
     public void init() {
         MDShaders.init();
         MDRenderer.init();
-
     }
 
     public void replaceRegion(String from,String to,boolean abbModName){

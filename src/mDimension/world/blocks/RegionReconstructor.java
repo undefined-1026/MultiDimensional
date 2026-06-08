@@ -206,10 +206,18 @@ public class RegionReconstructor extends UnitBlock {
 
         public void upgrade(Unit u){
             if(!u.isAdded())return;
-            amount--;
             float x = u.x;
             float y = u.y;
             float rotate = u.rotation;
+            if(!Vars.net.server()){
+                upgradeEffect.at(this.x,this.y,color());
+                upgradeInUnitEffect.at(x,y,rotate -90,color(),u);
+                upgradePosEffect.at(this.x,this.y,0,color(),u);
+                upgradeSound.at(x,y,Mathf.randomSeed(id,upgradeMinPit,upgradeMaxPit),1f,false);
+                return;
+            }
+            amount--;
+
             UnitType type = findType(u.type);
             var e = type.create(team);
             e.x = x;e.y = y;e.rotation = rotate;

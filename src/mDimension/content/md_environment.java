@@ -19,7 +19,7 @@ public class md_environment {
             crystallization_oil_deep,crystallization_oil,magnetic_shale_wall,magnetic_shale_stone,brownSandFloor,brownSandWall,
     light_shale_wall,pure_light_shale_wall,darkCrystallineStoneWall,darkRedStoneWall,
             inlayMetalTiles4,darkCrystalFloor,darkCrystallineStone,darkDenseRedStone,darkRedStone,
-            light_shale_floor,pure_light_shale_floor,yellow_ice,yellow_ice_snow,depthTile1,depthTile2,depthTile3,depthTile4,depthTile5,
+            light_shale_floor,pure_light_shale_floor,yellow_ice,yellow_ice_wall,chlorite,chlorite_wall,yellow_ice_snow,depthTile1,depthTile2,depthTile3,depthTile4,depthTile5,
     //ore
     oreAluminium,WallOreTitanium,oreGraphite,WallOreCopper,
     //props
@@ -178,9 +178,11 @@ public class md_environment {
         }};
 
         darkRedStone = new Floor("dark-red-stone"){{
+            mapColor = Color.valueOf("857240");
             variants=4;
         }};
         darkDenseRedStone = new Floor("dark-dense-red-stone"){{
+            mapColor = Color.valueOf("8A753E");
             variants=4;
         }};
         darkRedStoneWall = new StaticWall("dark-red-stone-wall"){{
@@ -190,6 +192,18 @@ public class md_environment {
         yellow_ice = new Floor("yellow-ice"){{
             variants = 3;
             attributes.set(Attribute.water, 1.5f);
+        }};
+
+        yellow_ice_wall = new StaticWall("yellow-ice-wall"){{
+            yellow_ice.asFloor().wall = darkRedStone.asFloor().wall = this;
+        }};
+
+        chlorite = new Floor("chlorite"){{
+            variants = 3;
+        }};
+
+        chlorite_wall = new StaticWall("chlorite-wall"){{
+            chlorite.asFloor().wall = darkRedStone.asFloor().wall = this;
         }};
 
         yellow_ice_snow = new Floor("yellow-ice-snow"){{
