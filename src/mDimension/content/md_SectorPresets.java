@@ -1,7 +1,5 @@
 package mDimension.content;
 
-import mindustry.content.SectorPresets;
-import mindustry.type.Sector;
 import mindustry.type.SectorPreset;
 
 public class md_SectorPresets {
