@@ -25,7 +25,7 @@ public class md_environment {
     //props
     darkCrystallineBoulders,
     //vent
-    dark_crystalline_stoneVent,light_stone_vent,yellow_ice_vent;
+    dark_crystalline_stoneVent,light_stone_vent,yellow_ice_vent,dark_red_stone_vent,magnetic_shale_stone_vent;
     public static CacheLayer
             crystallization_deep,crystallization
     ;
@@ -41,7 +41,7 @@ public class md_environment {
             statusDuration = 150f;
             speedMultiplier = 0.9f;
             variants = 0;
-            liquidMultiplier = 1f;
+            liquidMultiplier = 1.5f;
             isLiquid = true;
         }};
 
@@ -56,7 +56,7 @@ public class md_environment {
             status = StatusEffects.tarred;
             statusDuration = 150f;
             speedMultiplier = 0.9f;
-            liquidMultiplier = 1.5f;
+            liquidMultiplier = 1f;
             isLiquid = true;
 
         }};
@@ -219,16 +219,31 @@ public class md_environment {
 
         dark_crystalline_stoneVent = new SteamVent("dark-crystalline-stone-vent"){{
             parent = blendGroup = darkCrystalFloor;
+            effectColor = Color.valueOf("FFE8A1").a(0.7f);
             attributes.set(md_Attribute.ammonia, 1f);
         }};
 
         light_stone_vent = new SteamVent("light-stone-vent"){{
             parent = blendGroup = light_shale_floor;
+            effectColor = Color.valueOf("FFE8A1").a(0.7f);
             attributes.set(md_Attribute.ammonia, 1f);
         }};
 
         yellow_ice_vent = new SteamVent("yellow-ice-vent"){{
             parent = blendGroup = yellow_ice;
+            effectColor = Color.valueOf("FFE8A1").a(0.7f);
+            attributes.set(md_Attribute.ammonia, 1f);
+        }};
+
+        dark_red_stone_vent = new SteamVent("dark-red-stone-vent"){{
+            parent = blendGroup = darkRedStone;
+            effectColor = Color.valueOf("FFE8A1").a(0.7f);
+            attributes.set(md_Attribute.ammonia, 1f);
+        }};
+
+        magnetic_shale_stone_vent = new SteamVent("magnetic-shale-stone-vent"){{
+            parent = blendGroup = magnetic_shale_stone;
+            effectColor = Color.valueOf("FFE8A1").a(0.7f);
             attributes.set(md_Attribute.ammonia, 1f);
         }};
 

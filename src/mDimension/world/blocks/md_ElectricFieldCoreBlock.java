@@ -9,6 +9,7 @@ import arc.graphics.g2d.Lines;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.Seq;
+import arc.util.Eachable;
 import arc.util.Strings;
 import arc.util.Time;
 import arc.util.io.Reads;
@@ -18,13 +19,17 @@ import mindustry.content.Fx;
 import mindustry.content.StatusEffects;
 import mindustry.entities.Effect;
 import mindustry.entities.Units;
+import mindustry.entities.units.BuildPlan;
 import mindustry.gen.Sounds;
 import mindustry.gen.Unit;
+import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Pal;
 import mindustry.type.StatusEffect;
 import mindustry.ui.Bar;
 import mindustry.world.blocks.storage.CoreBlock;
+
+import static mindustry.Vars.tilesize;
 
 public class md_ElectricFieldCoreBlock extends CoreBlock {
     public float powerProduction = 5f;
@@ -46,6 +51,12 @@ public class md_ElectricFieldCoreBlock extends CoreBlock {
         outputsPower = true;
         consumesPower = false;
 
+    }
+
+    @Override
+    public void drawPlace(int x, int y, int rotation, boolean valid) {
+        super.drawPlace(x, y, rotation, valid);
+        Drawf.dashCircle(x * tilesize,y* tilesize,lightningRadius, Pal.placing);
     }
 
     public void setBars(){
@@ -143,6 +154,12 @@ public class md_ElectricFieldCoreBlock extends CoreBlock {
             Fill.circle(x,y,rad*0.6f);
 
 
+        }
+
+        @Override
+        public void drawSelect() {
+            super.drawSelect();
+            Drawf.dashCircle(x,y,lightningRadius,Pal.placing);
         }
 
         @Override

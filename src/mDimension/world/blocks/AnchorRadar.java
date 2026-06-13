@@ -63,15 +63,11 @@ public class AnchorRadar extends Block {
         super.load();
         drawer.load(this);
     }
-    @Override
-    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
-        drawer.drawPlan(this, plan, list);
-    }
 
     @Override
     public void drawPlace(int x, int y, int rotation, boolean valid) {
         super.drawPlace(x, y, rotation, valid);
-        Drawf.dashCircle(x * tilesize,y,radius * tilesize, Pal.placing);
+        Drawf.dashCircle(x * tilesize,y* tilesize,radius, Pal.placing);
     }
 
     @Override

@@ -3,14 +3,22 @@ package mDimension.world.blocks;
 import arc.Core;
 import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
+import arc.graphics.g2d.Fill;
+import arc.graphics.g2d.Lines;
 import arc.graphics.g2d.TextureRegion;
+import arc.math.Mathf;
 import arc.scene.ui.layout.Table;
 import arc.util.Eachable;
 import arc.util.Time;
+import arc.util.Tmp;
 import arc.util.io.Reads;
 import arc.util.io.Writes;
+import mindustry.Vars;
 import mindustry.entities.units.BuildPlan;
 import mindustry.gen.Building;
+import mindustry.graphics.Drawf;
+import mindustry.graphics.Pal;
+import mindustry.io.TypeIO;
 import mindustry.type.Liquid;
 import mindustry.world.Block;
 import mindustry.world.Tile;
@@ -18,6 +26,7 @@ import mindustry.world.blocks.ItemSelection;
 import mindustry.world.meta.BlockGroup;
 
 import static mindustry.Vars.content;
+import static mindustry.Vars.world;
 
 public class LiquidUnloader extends Block {
     public TextureRegion centerRegion, topRegion,sideRegion;
@@ -87,15 +96,18 @@ public class LiquidUnloader extends Block {
 
             Building back = back();
             if(sortLiquid != null&&back != null
-            &&back.block.hasLiquids && back.liquids.get(sortLiquid)>0.01f && back.canUnload()
-            && this.liquids.get(sortLiquid)<block.liquidCapacity-0.01f){
-                float minAmount = Math.min(block.liquidCapacity-this.liquids.get(sortLiquid),amount);
-                minAmount = Math.min(minAmount,back.liquids.get(sortLiquid));
-                back.liquids.remove(sortLiquid,minAmount);
-                this.handleLiquid(back,sortLiquid,minAmount);
+            &&back.block.hasLiquids && back.liquids.get(sortLiquid)>0.1f && back.canUnload()
+            && this.liquids.get(sortLiquid)<block.liquidCapacity-0.1f){
+                pullLiquid(back,Math.min(back.liquids.get(sortLiquid) /2,amount),sortLiquid);
+
+
+//                float minAmount = Math.min(block.liquidCapacity-this.liquids.get(sortLiquid),amount);
+//                minAmount = Math.min(minAmount,back.liquids.get(sortLiquid));
+//                back.liquids.remove(sortLiquid,minAmount);
+//                this.handleLiquid(back,sortLiquid,minAmount);
             }
 
-            unloaderLiquid();
+            dumpLiquid(liquids.current(),2,0);
         }
         public float amount(){
             return Time.delta  *  this.timeScale*this.efficiency * speed;
@@ -108,6 +120,15 @@ public class LiquidUnloader extends Block {
             }else if(liquids.current() !=null){
                 if(this.liquids.get(liquids.current())>0.01f)transferLiquid(this.front(),Math.min(this.liquids.get(liquids.current()),amount()),liquids.current());
             }
+        }
+
+        public void pullLiquid(Building source, float amount, Liquid liquid) {
+            float flow = Math.min(this.block.liquidCapacity - this.liquids.get(liquid), amount);
+            if (flow>0) {
+                this.handleLiquid(this, liquid, flow);
+                source.liquids.remove(liquid, flow);
+            }
+
         }
 
         @Override
@@ -133,6 +154,43 @@ public class LiquidUnloader extends Block {
         }
 
         @Override
+        public void drawSelect(){
+            if(sortLiquid == null)return;
+            Building f = front();
+            if(f!=null&&f.block.hasLiquids)drawInput(f,sortLiquid.color,false);
+            Building b = back();
+            if(b!=null&&b.block.hasLiquids)drawInput(b,sortLiquid.color,true);
+
+            Draw.reset();
+        }
+
+        public void drawInput(Building other,Color color,boolean toThis){
+            float pro = Time.time%60/60f;
+            if(toThis)pro = 1-pro;
+            float ox  =other.x;
+            float oy = other.y;
+            float cx = Mathf.lerp(x,other.x,pro);
+            float cy = Mathf.lerp(y,other.y,pro);
+            float ang = this.angleTo(other);
+            Tmp.v2.trns(ang, 2f);
+            Draw.color(Pal.gray);
+            Lines.stroke(2.5f);
+            Lines.square(ox, oy, 2f, 45f);
+            Lines.stroke(2.5f);
+            Lines.line(x + Tmp.v2.x, y + Tmp.v2.y, ox - Tmp.v2.x, oy - Tmp.v2.y);
+            Fill.square(cx,cy,1.2f * 1.8f,ang + 45f);
+            Draw.color(color);
+            Draw.alpha(1f);
+            Lines.stroke(1f);
+            Lines.line(x + Tmp.v2.x, y + Tmp.v2.y, ox - Tmp.v2.x, oy - Tmp.v2.y);
+
+            Lines.square(ox, oy, 2f, 45f);
+
+            Fill.square(cx,cy,1.2f,ang + 45f);
+            Draw.reset();
+        }
+
+        @Override
         public void buildConfiguration(Table table){
             ItemSelection.buildTable(LiquidUnloader.this, table, content.liquids(), () -> sortLiquid, this::configure, selectionRows, selectionColumns);
         }
@@ -145,14 +203,14 @@ public class LiquidUnloader extends Block {
         @Override
         public void write(Writes write){
             super.write(write);
-            write.s(sortLiquid == null ? -1 : sortLiquid.id);
+            write.s(sortLiquid == null?-1:sortLiquid.id);
         }
 
         @Override
         public void read(Reads read, byte revision){
             super.read(read, revision);
-            int id = revision == 1 ? read.s() : read.b();
-            sortLiquid = id == -1 ? null : content.liquid(id);
+            int id = read.s();
+            sortLiquid = id == -1?  null  :content.liquid(id);
         }
     }
 }

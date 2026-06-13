@@ -19,10 +19,12 @@ public class md_TechTree {
     public static Seq<TechTree.TechNode> all = new Seq<>();
     public static Seq<TechTree.TechNode> roots = new Seq<>();
 
+
+
     public static void load(){
         md_Planets.depicilon.techTree = nodeRoot("depicilon",md_blocks.coreSteady,()->{
             node(md_blocks.al_alloy_smelting,Seq.with(new Objectives.SectorComplete(md_SectorPresets.starting_point)),()->{
-               node(ti_alloy_smelting);
+               node(polymer_compressor,Seq.with(new Objectives.OnSector(md_SectorPresets.crystallization_oil_rift)));
             });
             node(md_blocks.light_duct,()->{
                 node(md_blocks.armored_light_duct,()->{
@@ -30,11 +32,26 @@ public class md_TechTree {
                 });
                 node(md_blocks.multiway_unloader);
                 node(md_blocks.light_duct_bridge);
-                node(light_sorter,()->{
-                    node(light_invertedSorter);
-                    node(light_overflowGate);
-                    node(light_underflowGate);
+                node(shunt_router,()->{
+                    node(light_sorter,()->{
+                        node(light_invertedSorter);
+                    });
+                    node(light_overflowGate,()->{
+                        node(light_underflowGate);
+                    });
+
                 });
+            });
+            node(fluid_conduit,Seq.with(new Objectives.OnSector(md_SectorPresets.crystallization_oil_rift)),()->{
+                node(directional_fluid_router,()->{
+                    node(fluid_junction);
+                });
+
+                node(fluid_conduit_bridge,()->{
+                    node(fluid_unloader);
+                });
+
+                node(siphon_pump);
             });
             node(small_impact_drill,()->{
                 node(heavy_pulverizer,()->{
@@ -51,7 +68,11 @@ public class md_TechTree {
                 node(ionize);
             });
             node(aluminium_wall,()->{
-                node(aluminium_wall_large);
+                node(aluminium_wall_large,()->{
+                    node(al_alloy_wall,()->{
+                        node(al_alloy_wall_large);
+                    });
+                });
             });
             node(magnetic_node,()->{
                 node(graphite_combustion_chamber);

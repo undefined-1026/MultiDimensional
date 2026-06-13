@@ -19,7 +19,8 @@ public class MultiRecipeCrafter extends GenericCrafter {
     private MultiRecipeConsume recipes;
     public MultiRecipeCrafter(String name) {
         super(name);
-
+        outputItems = ItemStack.with();//防止空指针
+        outputLiquids = LiquidStack.with();
     }
 
     public void consumeRecipes(MultiRecipeConsume recipes){
@@ -102,7 +103,7 @@ public class MultiRecipeCrafter extends GenericCrafter {
         }
     }
 
-    public class MultiRecipeCrafterBulid extends GenericCrafterBuild{
+    public class MultiRecipeCrafterBuild extends GenericCrafterBuild{
         public MultiRecipeConsume.Recipe recipe;
         @Override
         public void craft(){
@@ -199,6 +200,32 @@ public class MultiRecipeCrafter extends GenericCrafter {
             }
 
             dumpOutputs();
+        }
+
+        @Override
+        public float getProgressIncrease(float baseTime){
+            if(recipe == null)return 0;
+            if(ignoreLiquidFullness){
+                return Increase(baseTime);
+            }
+
+            //limit progress increase by maximum amount of liquid it can produce
+            float scaling = 1f, max = 1f;
+            if(recipes.outLiquidType().length >0){
+                max = 0f;
+                for(var s : recipe.outputLiquids){
+                    float value = (liquidCapacity - liquids.get(s.liquid)) / (s.amount * edelta());
+                    scaling = Math.min(scaling, value);
+                    max = Math.max(max, value);
+                }
+            }
+
+            //when dumping excess take the maximum value instead of the minimum.
+            return Increase(baseTime) * (dumpExtraLiquid ? Math.min(max, 1f) : scaling);
+        }
+
+        public float Increase(float baseTime) {
+            return 1.0F / baseTime * this.edelta();
         }
 
         @Override

@@ -209,7 +209,7 @@ public class RegionReconstructor extends UnitBlock {
             float x = u.x;
             float y = u.y;
             float rotate = u.rotation;
-            if(!Vars.net.server()){
+            if(!Vars.net.server() && Vars.net.active()){
                 upgradeEffect.at(this.x,this.y,color());
                 upgradeInUnitEffect.at(x,y,rotate -90,color(),u);
                 upgradePosEffect.at(this.x,this.y,0,color(),u);

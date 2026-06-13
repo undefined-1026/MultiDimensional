@@ -47,6 +47,8 @@ hs_err_pid*
 crash-report-*
 replay_pid*
 
+*.sai2
+
 ## Robovm
 /ios/robovm-build/
 

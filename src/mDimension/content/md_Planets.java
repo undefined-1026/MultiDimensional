@@ -19,6 +19,7 @@ public class md_Planets {
         depicilon = new Planet("depicilon",Planets.sun,1f,3){{
             loadPlanetData = true;
             orbitRadius = 75;
+            defaultEnv = Env.terrestrial;
             defaultCore = md_blocks.coreSteady;
             ruleSetter = r -> {
                 r.waveTeam = Team.crux;
@@ -39,11 +40,13 @@ public class md_Planets {
             );
             launchCapacityMultiplier = 0.15f;
             sectorSeed = 1145;
+
             allowSectorInvasion = false;
             allowLaunchSchematics = true;
-            enemyCoreSpawnReplace = true;
             allowLaunchLoadout = true;
-            defaultEnv = Env.terrestrial;
+
+            enemyCoreSpawnReplace = true;
+
             showRtsAIRule = true;
             prebuildBase = true;
             iconColor = Color.valueOf("FFF5B2");

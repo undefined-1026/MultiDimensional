@@ -55,6 +55,8 @@ import mindustry.world.blocks.defense.turrets.ItemTurret;
 import mindustry.world.blocks.distribution.Duct;
 import mindustry.world.blocks.distribution.OverflowGate;
 import mindustry.world.blocks.distribution.Sorter;
+import mindustry.world.blocks.liquid.Conduit;
+import mindustry.world.blocks.liquid.LiquidJunction;
 import mindustry.world.blocks.payloads.Constructor;
 import mindustry.world.blocks.power.Battery;
 import mindustry.world.blocks.power.ConsumeGenerator;
@@ -78,10 +80,10 @@ public class md_blocks {
             water_pyrolyzer,carbon_fibre_binder,heavy_pulverizer,polymer_compressor,phase_adder,ammonia_chamber,
     //distribution
     beam_merging_prism,
-            multiway_unloader, light_duct_bridge,
+            multiway_unloader, light_duct_bridge,shunt_router,
             light_sorter,light_invertedSorter,light_overflowGate,light_underflowGate,light_duct,armored_light_duct,stack_rail_conveyor,
     //liquid
-    liquid_unloader,liquid_conduit_bridge,
+    siphon_pump,  fluid_unloader,fluid_conduit_bridge,directional_fluid_router,fluid_junction,fluid_conduit,
     //drill
     deep_water_extractor,beam_bore,small_impact_drill,ammonia_collector,
     //ammo
@@ -89,11 +91,11 @@ public class md_blocks {
     //turret
     ionize, fracture,break_water, polarization,dawn,crack,crest,test4,test5,
     //wall
-    aluminium_wall,aluminium_wall_large,
+    aluminium_wall,aluminium_wall_large,al_alloy_wall,al_alloy_wall_large,
     //core
     coreSteady,proof_container,stack,
     //power
-    internal_energy_pile,magnetic_node,graphite_combustion_chamber,
+    internal_energy_pile,magnetic_node,graphite_combustion_chamber,composite_combustion,
     //payload
     small_payload_conveyor,
             small_payload_router,
@@ -117,7 +119,7 @@ public class md_blocks {
 
             consumeItem(Items.sand, 3);
             outputItem = new ItemStack(Items.silicon, 2);
-            craftTime = (2f / 1.8f) * 60f;
+            craftTime = 60f;
             ambientSound = Sounds.loopSmelter;
             ambientSoundVolume = 0.12f;
             consumePower(2.5f);
@@ -322,7 +324,7 @@ public class md_blocks {
         ammonia_chamber = new GenericCrafter("ammonia-chamber") {{
             requirements(Category.crafting, with(Items.silicon, 30, md_items.aluminium, 50, Items.copper, 50));
             consumeLiquid(md_liquids.ammonia, 24 / 60f);
-            outputLiquids = LiquidStack.with(Liquids.water, 12 / 60f, Liquids.nitrogen, 12 / 60f);
+            outputLiquids = LiquidStack.with(Liquids.hydrogen, 24 / 60f, Liquids.nitrogen, 12 / 60f);
             liquidOutputDirections = new int[]{1, 3};
             size = 3;
             rotate = true;
@@ -335,6 +337,9 @@ public class md_blocks {
             drawer = new DrawMulti(
                     new DrawRegion("-bottom"),
                     new DrawLiquidTile(md_liquids.ammonia, 3f),
+                    new DrawCrucibleFlame(){{
+
+                    }},
                     new DrawRegion(),
                     new DrawLiquidOutputs(),
                     new DrawGlowRegion() {{
@@ -350,12 +355,11 @@ public class md_blocks {
             requirements(Category.crafting, ItemStack.with(
                     md_items.aluminium, 70,
                     md_items.al_alloy, 40,
-                    Items.silicon, 100,
-                    Items.titanium, 80
+                    Items.silicon,100
             ));
             squareSprite = false;
             size = 3;
-            consumeLiquids(LiquidStack.with(Liquids.oil, 15 / 60f, Liquids.hydrogen, 4f / 60f));
+            consumeLiquids(LiquidStack.with(md_liquids.crystallization_oil, 15 / 60f, Liquids.hydrogen, 6f / 60f));
             consumePower(4f);
             outputItem = new ItemStack(md_items.polymer, 1);
             craftTime = 60f;
@@ -578,45 +582,45 @@ public class md_blocks {
         }};
         heavy_pulverizer = new MultiRecipeCrafter("heavy-pulverizer") {{
             requirements(Category.crafting, with(md_items.aluminium, 40, Items.graphite, 50));
-            craftTime = 30f;
+            craftTime = 60f;
             autoResetEnabled = true;
-            itemCapacity = 20;
+            itemCapacity = 30;
             consumePower(3f);
             size = 2;
             researchCost = with(md_items.aluminium, 30, Items.graphite, 30);
-            craftEffect = md_Fx.craftEffect(60f, 3f, md_items.polymer.color, 4, new float[]{3, 3, -3, 3, -3, -3, 3, -3});
+            craftEffect = md_Fx.craftEffect(60f, 3f, md_items.polymer.color, 8, new float[]{3, 3, -3, 3, -3, -3, 3, -3});
             consumeRecipes(new MultiRecipeConsume(
                     new MultiRecipeConsume.Recipe() {{
-                        consumeItems = with(Items.scrap, 3);
-                        outputItems = with(Items.sand, 6);
+                        consumeItems = with(Items.scrap, 6);
+                        outputItems = with(Items.sand, 15);
                     }},
                     new MultiRecipeConsume.Recipe() {{
-                        consumeItems = with(Items.thorium, 3);
-                        outputItems = with(Items.sand, 4);
+                        consumeItems = with(Items.thorium, 5);
+                        outputItems = with(Items.sand, 9);
                     }},
                     new MultiRecipeConsume.Recipe() {{
-                        consumeItems = with(Items.tungsten, 3);
-                        outputItems = with(Items.sand, 4);
+                        consumeItems = with(Items.tungsten, 5);
+                        outputItems = with(Items.sand, 9);
                     }},
                     new MultiRecipeConsume.Recipe() {{
-                        consumeItems = with(Items.titanium, 4);
-                        outputItems = with(Items.sand, 4);
+                        consumeItems = with(Items.titanium, 6);
+                        outputItems = with(Items.sand, 9);
                     }},
                     new MultiRecipeConsume.Recipe() {{
-                        consumeItems = with(Items.beryllium, 4);
-                        outputItems = with(Items.sand, 4);
+                        consumeItems = with(Items.beryllium, 6);
+                        outputItems = with(Items.sand, 9);
                     }},
                     new MultiRecipeConsume.Recipe() {{
-                        consumeItems = with(md_items.aluminium, 4);
-                        outputItems = with(Items.sand, 4);
+                        consumeItems = with(md_items.aluminium, 6);
+                        outputItems = with(Items.sand, 9);
                     }},
                     new MultiRecipeConsume.Recipe() {{
-                        consumeItems = with(Items.copper, 5);
-                        outputItems = with(Items.sand, 4);
+                        consumeItems = with(Items.copper, 8);
+                        outputItems = with(Items.sand, 9);
                     }},
                     new MultiRecipeConsume.Recipe() {{
-                        consumeItems = with(Items.lead, 5);
-                        outputItems = with(Items.sand, 4);
+                        consumeItems = with(Items.lead, 8);
+                        outputItems = with(Items.sand, 9);
                     }}
             ));
 
@@ -846,10 +850,19 @@ public class md_blocks {
                 researchCostMultiplier = 0.3f;
                 squareSprite = false;
             }};
+            shunt_router = new ShuntDuctRouter("shunt-router"){{
+                requirements(Category.distribution, with(md_items.aluminium, 4));
+                researchCost = with( md_items.aluminium, 10);
+                health = 150;
+                speed = 4f;
+                regionRotated1 = 1;
+                solid = false;
+            }};
             light_sorter = new Sorter("light-sorter"){{
                 requirements(Category.distribution, with(md_items.aluminium, 3));
                 buildCostMultiplier = 3f;
-                researchCost = with( md_items.aluminium, 10);
+                researchCost = with();
+                health = 150;
             }};
 
             light_invertedSorter = new Sorter("light-inverted-sorter"){{
@@ -857,11 +870,13 @@ public class md_blocks {
                 buildCostMultiplier = 3f;
                 invert = true;
                 researchCost = with( );
+                health = 150;
             }};
             light_overflowGate = new OverflowGate("light-overflow-gate"){{
                 requirements(Category.distribution, with(md_items.aluminium, 3));
                 buildCostMultiplier = 3f;
                 researchCost = with( );
+                health = 150;
             }};
 
             light_underflowGate = new OverflowGate("light-underflow-gate"){{
@@ -869,6 +884,7 @@ public class md_blocks {
                 buildCostMultiplier = 3f;
                 invert = true;
                 researchCost = with( );
+                health = 150;
             }};
 
             multiway_unloader = new md_MultiwayUnloader("multiway-unloader") {{
@@ -896,19 +912,28 @@ public class md_blocks {
             }};
         //endregion
         //region liquid
-        liquid_unloader = new LiquidUnloader("liquid-unloader"){{
-            requirements(Category.liquid,with());
+        siphon_pump = new Pump("siphon-pump"){{
+            requirements(Category.liquid,with(Items.silicon,30, md_items.aluminium,50));
+            pumpAmount = 15/60f;
+            liquidCapacity = 80f;
+            size = 2;
+            consumePower(80/60f);
+            researchCost = with(Items.silicon,300, md_items.aluminium,500);
+        }};
+        fluid_unloader = new LiquidUnloader("fluid-unloader"){{
+            requirements(Category.liquid,with(Items.silicon,10, md_items.polymer, 5,md_items.al_alloy,5));
             connectedPower = true;
             rotate = true;
             rotateDraw = false;
+            health = 150;
             speed = 2;
             regionRotated1 = 1;
             size = 1;
             conductivePower = true;
             fullOverride = this.name + "-private";
         }};
-        liquid_conduit_bridge = new RadiusLiquidBridge("liquid-conduit-bridge"){{
-            requirements(Category.liquid, with(Items.silicon, 10, Items.titanium, 10, md_items.polymer, 10));
+        fluid_conduit_bridge = new RadiusLiquidBridge("fluid-conduit-bridge"){{
+            requirements(Category.liquid, with(Items.silicon,10, md_items.polymer, 10));
             arrowSpacing = 6f;
             bridgeWidth = 8;
             arrowTimeScl = 15;
@@ -921,6 +946,26 @@ public class md_blocks {
             buildCostMultiplier = 3f;
             researchCostMultiplier = 0.3f;
             squareSprite = false;
+        }};
+        directional_fluid_router = new DirectionalLiquidRouter("directional-fluid-router"){{
+            requirements(Category.liquid, with(Items.copper, 10,md_items.aluminium,8,Items.silicon,5));
+            health = 250;
+            liquidCapacity = 150f;
+            squareSprite = false;
+        }};
+        fluid_junction = new BlendLiquidJunction("fluid-junction"){{
+            requirements(Category.liquid, with(md_items.aluminium,5,Items.silicon,3));
+            health = 200;
+            solid = false;
+        }};
+
+        fluid_conduit = new Conduit("fluid-conduit"){{
+            requirements(Category.liquid, with(Items.copper, 1,md_items.aluminium,1));
+            liquidCapacity = 60f;
+            health = 100;
+
+            explosivenessScale = flammabilityScale = 12f/60f;
+            botColor = Color.valueOf("575446");
         }};
         //endregion
         //region turret
@@ -1945,14 +1990,32 @@ public class md_blocks {
         aluminium_wall = new Wall("aluminium-wall"){{
             requirements(Category.defense,with(md_items.aluminium,6));
             scaledHealth = 550f;
+            armor = 1;
             researchCost = with( md_items.aluminium, 20);
 
         }};
         aluminium_wall_large = new Wall("aluminium-wall-large"){{
             requirements(Category.defense,with(md_items.aluminium,24));
             scaledHealth = 550f;
+            armor = 1;
             size = 2;
             researchCost = with( md_items.aluminium, 80);
+
+        }};
+
+        al_alloy_wall = new Wall("al-alloy-wall"){{
+            requirements(Category.defense,with(md_items.al_alloy,6));
+            scaledHealth = 750f;
+            armor = 8;
+            researchCost = with( md_items.al_alloy, 200);
+
+        }};
+        al_alloy_wall_large = new Wall("al-alloy-wall-large"){{
+            requirements(Category.defense,with(md_items.al_alloy,24));
+            scaledHealth = 750f;
+            armor = 8;
+            size = 2;
+            researchCost = with( md_items.al_alloy, 1000);
 
         }};
         //endregion
@@ -2041,6 +2104,38 @@ public class md_blocks {
                     new DrawRegion("-bottom"),
                     new DrawRegion(),
                     new DrawJetFlame(),
+                    new DrawRegion("-top")
+            );
+        }};
+
+        composite_combustion = new ConsumeGenerator("composite-combustion"){{
+            requirements(Category.power, with(md_items.al_alloy, 120, Items.graphite,200,Items.silicon,150,md_items.polymer,120));
+            powerProduction = 1800/60f;
+            itemDuration = 300f;
+            size = 4;
+            liquidCapacity = 200;
+            itemCapacity = 20;
+            generateEffect = Fx.none;
+            researchCostMultiplier = 0.05f;
+            ambientSoundVolume = 0.06f;
+            consumeLiquids(LiquidStack.with(Liquids.hydrogen,10f/60f,md_liquids.crystallization_oil,36f/60f));
+            consumeItems(with(md_items.polymer,4));
+            drawer = new DrawMulti(
+                    new DrawRegion("-bottom"),
+                    new DrawLiquidTile(md_liquids.crystallization_oil,3f),
+                    new DrawRegion(),
+                    new DrawJetFlame(){{
+                        amount = 8;
+                        rotate = 0;
+                        beginLen = 6.5f;
+                        len = 17f;
+                        stroke = 7f;
+                        lenMul = 3f;
+                        colorOut = Color.valueOf("CDE060");
+                    }},
+                    new DrawRegion("-mid"),
+                    new DrawLiquidTile(Liquids.hydrogen,11f),
+                    new DrawArcSmelt(),
                     new DrawRegion("-top")
             );
         }};
